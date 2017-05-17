@@ -309,7 +309,7 @@ void RunGUI(bool show)
 				enumwin *win(nullptr);
 				try { win = &windows.at(seltext); }
 				catch(out_of_range&) {}
-				if(win) SetWindowLongPtr(win->hwnd, GWL_STYLE, monwins.at(seltext).style);
+				if(win && monwins.at(seltext).style) SetWindowLongPtr(win->hwnd, GWL_STYLE, monwins.at(seltext).style);
 				monwins.erase(seltext);
 				list1.erase(lb.at(selitem.item-deleted++));
 				list1.column_at(0).width(list1.size().width - (21*lb.size() < list1.size().height-20 ? 4 : 20));
@@ -327,11 +327,9 @@ void RunGUI(bool show)
 			enumwin *win(nullptr);
 			try { win = &windows.at(seltext); }
 			catch(out_of_range&) {}
-			if(win) SetWindowLongPtr(win->hwnd, GWL_STYLE, monwins.at(seltext).style);
+			if(win && monwins.at(seltext).style) SetWindowLongPtr(win->hwnd, GWL_STYLE, monwins.at(seltext).style);
 			monwins.erase(lb.at(selection[0].item).text(0));
-			//cout << 21*lb.size() << "  " << list1.size().height-20 << endl;
 			list1.erase(lb.at(selection[0].item));
-			//cout << 21*lb.size() << "  " << list1.size().height-20 << endl;
 			list1.column_at(0).width(list1.size().width - (21*lb.size() < list1.size().height-20 ? 4 : 20));
 			last.clear();
 		}
