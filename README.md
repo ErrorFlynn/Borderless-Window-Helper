@@ -15,6 +15,6 @@ Pressing the "close" button only hides the interface, so if you want to close th
 ## Download
 
 
-[Borderless Window Helper 1.0.zip](https://github.com/ErrorFlynn/Borderless-Window-Helper/files/1006403/Borderless.Window.Helper.1.0.zip)
+[Borderless Window Helper 1.0.zip](https://github.com/ErrorFlynn/Borderless-Window-Helper/releases/download/v1.0/Borderless.Window.Helper.1.0.zip)
 
 ![bwh-1](https://cloud.githubusercontent.com/assets/20293505/26132606/6f7c6fa8-3a6f-11e7-9b08-44cd5b8eb4e7.png)
