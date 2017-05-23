@@ -5,15 +5,14 @@
 
 #include "util.h"
 #include <string>
-#include <cassert>
 #include <map>
 
 #pragma warning( disable : 4800 4267 4996)
 #pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' \
 	processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
-#define TITLE "Borderless Window Helper 1.0"
-#define TITLEW L"Borderless Window Helper 1.0"
+#define TITLE "Borderless Window Helper 1.1"
+#define TITLEW L"Borderless Window Helper 1.1"
 
 using namespace std;
 using namespace nana;
@@ -21,7 +20,7 @@ using namespace nana;
 string last;
 wstring inifile;
 filepath self_path;
-HWND hwnd, balloon(0);
+HWND hwnd;
 bool mintray(true);
 
 struct monwin
@@ -36,7 +35,12 @@ map<string, monwin> monwins;
 
 struct enumwin
 {
-	DWORD procid = 0; wstring procnamew; HWND hwnd; wstring captionw; bool borderless = false;
+	DWORD procid = 0;
+	wstring procnamew;
+	HWND hwnd = nullptr;
+	HMONITOR monitor = nullptr;
+	wstring captionw;
+	bool borderless = false;
 };
 
 map<string, enumwin> windows;

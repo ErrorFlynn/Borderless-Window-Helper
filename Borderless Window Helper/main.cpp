@@ -392,7 +392,7 @@ void mon_timer_fn()
 		if(!win.borderless) // remove borders
 		{
 			MONITORINFO mi = {sizeof(mi)};
-			GetMonitorInfoW(MonitorFromWindow(win.hwnd, MONITOR_DEFAULTTOPRIMARY), &mi);
+			GetMonitorInfoW(win.monitor, &mi);
 			SetWindowLongPtr(win.hwnd, GWL_STYLE, (monwin.second.style & ~(WS_CAPTION|WS_THICKFRAME)) | WS_POPUP);
 			SetWindowPos(win.hwnd, HWND_TOP, mi.rcMonitor.left, mi.rcMonitor.top, mi.rcMonitor.right - mi.rcMonitor.left,
 				mi.rcMonitor.bottom - mi.rcMonitor.top, SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
@@ -401,10 +401,15 @@ void mon_timer_fn()
 		HWND fghwnd = GetForegroundWindow();
 		if(monwin.second.active)
 		{
-			if(fghwnd != win.hwnd)
+			if(fghwnd != win.hwnd && win.monitor == MonitorFromWindow(fghwnd, MONITOR_DEFAULTTOPRIMARY))
 			{
-				monwin.second.active = false;
-				PostMessage(win.hwnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
+				string fgclassname(1024, '\0');
+				fgclassname.resize(GetClassNameA(fghwnd, &fgclassname.front(), fgclassname.size()));
+				if(fgclassname != "TaskSwitcherWnd")
+				{
+					monwin.second.active = false;
+					PostMessage(win.hwnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
+				}
 			}
 		}
 		else if(fghwnd == win.hwnd) monwin.second.active = true;
@@ -499,6 +504,7 @@ void enum_windows()
 				filepath procpath(procname);
 				win.procnamew = procpath.fullnamew();
 				win.hwnd = hwnd;
+				win.monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY);
 				win.captionw = caption;
 				if(!(style & (WS_CAPTION|WS_THICKFRAME))) win.borderless = true;
 				windows[procpath.fullname()] = win;
