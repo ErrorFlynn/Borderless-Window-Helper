@@ -14,6 +14,10 @@ Pressing the "close" button only hides the interface, so if you want to close th
 
 ## Download
 
+[Borderless Window Helper 1.1.zip](https://github.com/ErrorFlynn/Borderless-Window-Helper/releases/download/v1.1/Borderless.Window.Helper.1.1.zip)
+– latest version, adds a couple of behavior changes:
+* the system's task switcher window no longer causes the program to minimize the game window
+* switching to a window on a different monitor than the game window no longer minimizes the game window
 
 [Borderless Window Helper 1.0.zip](https://github.com/ErrorFlynn/Borderless-Window-Helper/releases/download/v1.0/Borderless.Window.Helper.1.0.zip)
 
