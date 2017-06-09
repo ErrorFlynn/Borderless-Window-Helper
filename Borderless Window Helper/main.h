@@ -11,8 +11,8 @@
 #pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' \
 	processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
-#define TITLE "Borderless Window Helper 1.1"
-#define TITLEW L"Borderless Window Helper 1.1"
+#define TITLE "Borderless Window Helper 1.2"
+#define TITLEW L"Borderless Window Helper 1.2"
 
 using namespace std;
 using namespace nana;
@@ -27,23 +27,24 @@ struct monwin
 {
 	int style = 0;
 	bool active = false;
+	string pname; // process name as displayed in the list (not lowercased)
 	monwin() {}
-	monwin(int st, bool a) {style = st, active = a; }
+	monwin(int st, bool a, string pn) { style = st, active = a; pname = pn; }
 };
 
-map<string, monwin> monwins;
+map<string, monwin> monwins; // key is lowercase process name
 
 struct enumwin
 {
 	DWORD procid = 0;
-	wstring procnamew;
+	string pname; // process name as displayed in the list (not lowercased)
 	HWND hwnd = nullptr;
 	HMONITOR monitor = nullptr;
 	wstring captionw;
 	bool borderless = false;
 };
 
-map<string, enumwin> windows;
+map<string, enumwin> windows; // key is lowercase process name
 
 
 void LoadSettings();

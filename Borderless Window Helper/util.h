@@ -54,8 +54,8 @@ static void mbtowc(const string &mbstr, wstring &wcstr, unsigned cp = CP_UTF8)
 	MultiByteToWideChar(cp, NULL, mbstr.data(), -1, &wcstr.front(), len-1);
 }
 
-static void strlower(string &s) { for(auto &c : s) c = tolower(c); }
-static void strlower(wstring &s) { for(auto &c : s) c = tolower(c); }
+static string strlower(string s) { for(auto &c : s) c = tolower(c); return move(s); }
+static wstring strlower(wstring s) { for(auto &c : s) c = tolower(c); return move(s); }
 
 LONGLONG GetFileSize(LPCWSTR);
 string GetLastErrorStr();

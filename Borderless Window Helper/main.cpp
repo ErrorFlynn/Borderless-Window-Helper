@@ -183,11 +183,11 @@ void RunGUI(bool show)
 		{
 			string seltext;
 			seltext = lb.at(selection[0].item).text(0);
-			for(auto &monwin : monwins) if(monwin.first == seltext) return;
-			auto &win = windows.at(seltext);
+			for(auto &monwin : monwins) if(monwin.second.pname == seltext) return;
+			auto &win = windows.at(strlower(seltext));
 			int style(0);
 			if(!win.borderless) style = GetWindowLongPtr(win.hwnd, GWL_STYLE);
-			monwins[seltext] = {style, false};
+			monwins[strlower(seltext)] = {style, false, seltext};
 			list1.auto_draw(false);
 			list1.at(0).push_back(seltext);
 			sort_list(list1);
@@ -225,17 +225,21 @@ void RunGUI(bool show)
 			if(selection.size() == 1)
 			{
 				string seltext;
-				seltext = lb.at(selection[0].item).text(0);
+				seltext = strlower(lb.at(selection[0].item).text(0));
 				if(last != seltext)
 				{
 					lbinfo.text_align(align::left);
 					lbinfo.typeface(paint::font("Segoe UI", 10, detail::font_style(0)));
-					auto &win = windows.at(seltext);
-					string caption = R"(<font="Segoe UI Semibold">PID:</> )" + to_string(win.procid);
-					caption += "  |  <font=\"Segoe UI Semibold\">Window handle:</> " + to_hex_string((unsigned)win.hwnd);
-					caption += "  |  Window " + (win.borderless ? "doesn't have a border"s : "has a border (monitoring will remove it)"s);
-					caption += "\n\n<font=\"Segoe UI Semibold\">Window title:</> " + charset(win.captionw).to_bytes(unicode::utf8);
-					lbinfo.caption(caption);
+					try
+					{
+						auto &win = windows.at(seltext);
+						string caption = R"(<font="Segoe UI Semibold">PID:</> )" + to_string(win.procid);
+						caption += "  |  <font=\"Segoe UI Semibold\">Window handle:</> " + to_hex_string((unsigned)win.hwnd);
+						caption += "  |  Window " + (win.borderless ? "doesn't have a border"s : "has a border (monitoring will remove it)"s);
+						caption += "\n\n<font=\"Segoe UI Semibold\">Window title:</> " + charset(win.captionw).to_bytes(unicode::utf8);
+						lbinfo.caption(caption);
+					}
+					catch(out_of_range&) {}
 					last = seltext;
 				}
 			}
@@ -252,8 +256,7 @@ void RunGUI(bool show)
 			auto selection = list1.selected();
 			if(selection.size() == 1)
 			{
-				string seltext;
-				seltext = lb.at(selection[0].item).text(0);
+				string seltext = strlower(lb.at(selection[0].item).text(0));
 				if(last != seltext)
 				{
 					lbinfo.text_align(align::center, align_v::center);
@@ -305,7 +308,7 @@ void RunGUI(bool show)
 			int deleted(0);
 			for(auto &selitem : selection)
 			{
-				string seltext = lb.at(selitem.item-deleted).text(0);
+				string seltext = strlower(lb.at(selitem.item-deleted).text(0));
 				enumwin *win(nullptr);
 				try { win = &windows.at(seltext); }
 				catch(out_of_range&) {}
@@ -323,12 +326,12 @@ void RunGUI(bool show)
 		auto selection = list1.selected();
 		if(selection.size() == 1)
 		{
-			string seltext = lb.at(selection[0].item).text(0);
+			string seltext = strlower(lb.at(selection[0].item).text(0));
 			enumwin *win(nullptr);
 			try { win = &windows.at(seltext); }
 			catch(out_of_range&) {}
 			if(win && monwins.at(seltext).style) SetWindowLongPtr(win->hwnd, GWL_STYLE, monwins.at(seltext).style);
-			monwins.erase(lb.at(selection[0].item).text(0));
+			monwins.erase(seltext);
 			list1.erase(lb.at(selection[0].item));
 			list1.column_at(0).width(list1.size().width - (21*lb.size() < list1.size().height-20 ? 4 : 20));
 			last.clear();
@@ -349,7 +352,7 @@ void RunGUI(bool show)
 	mon_timer.start();
 
 	list1.auto_draw(false);
-	for(auto &monwin : monwins) list1.at(0).push_back(monwin.first);
+	for(auto &monwin : monwins) list1.at(0).push_back(monwin.second.pname);
 	list1.column_at(0).width(list1.size().width - (21*list1.at(0).size() < list1.size().height-20 ? 4 : 20));
 	sort_list(list1);
 	list1.auto_draw(true);
@@ -387,7 +390,7 @@ void mon_timer_fn()
 	for(auto &monwin : monwins)
 	{
 		static enumwin &win = enumwin();
-		try { win = windows.at(monwin.first); }
+		try { win = windows.at(strlower(monwin.second.pname)); }
 		catch(out_of_range&) { continue; } // process not running
 		if(!win.borderless) // remove borders
 		{
@@ -436,14 +439,14 @@ void enum_timer_fn(listbox &list1, listbox &list2, label &info)
 	list2.auto_draw(false);
 	for(auto &item : lb2) // remove from list2 processes no longer running
 	{
-		try { windows.at(item.text(0)); }
+		try { windows.at(strlower(item.text(0))); }
 		catch(out_of_range&) { list2.erase(item); }
 	}
 	for(auto &win : windows) // add to list2 running processes that are not already in the list
 	{
 		bool found(false);
 		for(auto &item : lb2)
-			if(item.text(0) == win.first)
+			if(item.text(0) == win.second.pname)
 			{
 				found = true;
 				break;
@@ -451,7 +454,7 @@ void enum_timer_fn(listbox &list1, listbox &list2, label &info)
 		if(!found)
 		{
 			//cout << procname << "  ";
-			lb2.push_back(win.first);
+			lb2.push_back(win.second.pname);
 		}
 	}
 
@@ -460,7 +463,7 @@ void enum_timer_fn(listbox &list1, listbox &list2, label &info)
 	for(auto &item : list2.at(0))
 	{
 		if(item.text(0) == seltext2) item.select(true);
-		if(windows.at(item.text(0)).borderless)
+		if(windows.at(strlower(item.text(0))).borderless)
 			item.fgcolor(color_rgb(0x883311));
 		else item.fgcolor(list2.fgcolor());
 	}
@@ -471,7 +474,7 @@ void enum_timer_fn(listbox &list1, listbox &list2, label &info)
 		list1.auto_draw(false);
 		for(auto &item : list1.at(0))
 		{
-			try { windows.at(item.text(0)); }
+			try { windows.at(strlower(item.text(0))); }
 			catch(out_of_range&) { item.fgcolor(list1.fgcolor()); item.bgcolor(list1.bgcolor()); continue; }
 			item.fgcolor(color_rgb(0x663311));
 			item.bgcolor(color_rgb(0xffffff));
@@ -502,12 +505,12 @@ void enum_windows()
 				enumwin win;
 				win.procid = procid;
 				filepath procpath(procname);
-				win.procnamew = procpath.fullnamew();
+				win.pname = procpath.fullname();
 				win.hwnd = hwnd;
 				win.monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY);
 				win.captionw = caption;
 				if(!(style & (WS_CAPTION|WS_THICKFRAME))) win.borderless = true;
-				windows[procpath.fullname()] = win;
+				windows[strlower(procpath.fullname())] = win;
 			}
 		}
 		return TRUE;
@@ -578,7 +581,7 @@ void LoadSettings()
 		if(pname.size())
 		{
 			style = ini.ReadInt(to_string(n++), "s", 0);
-			monwins[pname] = {style, false};
+			monwins[strlower(pname)] = {style, false, pname};
 		}
 	}
 	while(pname.size());
@@ -593,7 +596,7 @@ void SaveSettings()
 	for(auto &monwin : monwins)
 	{
 		string s = to_string(idx++);
-		ini.WriteString(s, "p", monwin.first);
+		ini.WriteString(s, "p", monwin.second.pname);
 		ini.WriteInt(s, "s", monwin.second.style);
 	}
 }
