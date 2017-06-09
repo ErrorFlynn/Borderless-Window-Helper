@@ -14,8 +14,11 @@ Pressing the "close" button only hides the interface, so if you want to close th
 
 ## Download
 
+[Borderless Window Helper 1.2.zip](https://github.com/ErrorFlynn/Borderless-Window-Helper/releases/download/v1.2/Borderless.Window.Helper.1.2.zip)
+
+GetModuleFileNameEx sometimes returns "GWENT.exe" instead of "Gwent.exe", and I couldn't be bothered to try and find out why, so I just made the string comparisons between the two lists case insensitive (it's probably for the best anyway). No other changes in this version.
+
 [Borderless Window Helper 1.1.zip](https://github.com/ErrorFlynn/Borderless-Window-Helper/releases/download/v1.1/Borderless.Window.Helper.1.1.zip)
-– latest version, adds a couple of behavior changes:
 * the system's task switcher window no longer causes the program to minimize the game window
 * switching to a window on a different monitor than the game window no longer minimizes the game window
 
