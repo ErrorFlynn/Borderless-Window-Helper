@@ -18,10 +18,12 @@ Pressing the "close" button only hides the interface, so if you want to close th
 
 GetModuleFileNameEx sometimes returns "GWENT.exe" instead of "Gwent.exe", and I couldn't be bothered to try and find out why, so I just made the string comparisons between the two lists case insensitive (it's probably for the best anyway). No other changes in this version.
 
+---
 [Borderless Window Helper 1.1.zip](https://github.com/ErrorFlynn/Borderless-Window-Helper/releases/download/v1.1/Borderless.Window.Helper.1.1.zip)
 * the system's task switcher window no longer causes the program to minimize the game window
 * switching to a window on a different monitor than the game window no longer minimizes the game window
 
+---
 [Borderless Window Helper 1.0.zip](https://github.com/ErrorFlynn/Borderless-Window-Helper/releases/download/v1.0/Borderless.Window.Helper.1.0.zip)
 
 ![bwh-1](https://cloud.githubusercontent.com/assets/20293505/26132606/6f7c6fa8-3a6f-11e7-9b08-44cd5b8eb4e7.png)
