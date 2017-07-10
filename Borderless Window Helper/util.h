@@ -2,13 +2,9 @@
 #include <Windows.h>
 #include <string>
 #include <chrono>
+#include <experimental/filesystem>
 
 #pragma warning( disable : 4800 4267 4996)
-
-#ifndef FileExist
-#define FileExist(x) (GetFileAttributesA(x) != -1)
-#endif
-#define FileExistW(x) (GetFileAttributesW(x) != -1)
 
 using namespace std;
 
@@ -23,8 +19,8 @@ public:
 	filepath() {}
 	filepath(string);
 	filepath(wstring);
-	string path() { return path_; }
-	wstring pathw() { return pathw_; }
+	operator string() { return path_; }
+	operator wstring() { return pathw_; }
 	string dir() { return dir_; }
 	wstring dirw() { return dirw_; }
 	string name() { return name_; }
@@ -65,6 +61,7 @@ string to_hex_string(unsigned);
 wstring GetAppFolder();
 filepath AppPath();
 wstring MakeTempFolder(wstring);
+template<typename T> bool FileExist(const T &fname) { return experimental::filesystem::exists(fname); }
 
 
 class chronometer

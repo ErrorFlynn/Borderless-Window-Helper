@@ -1,11 +1,10 @@
-#include "shlobj.h"
+#include "util.h"
+#include <shlobj.h>
 #include <string>
 #include <vector>
 #include <fstream>
 #include <sstream>
 #include <algorithm>
-
-#define FileExist(x) (GetFileAttributesW(x) != -1)
 
 using namespace std;
 

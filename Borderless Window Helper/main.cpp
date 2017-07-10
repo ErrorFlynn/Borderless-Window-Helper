@@ -6,15 +6,14 @@
 #include <nana/gui/wvl.hpp>
 #include <iostream>
 #include <algorithm>
+#include <cassert>
 
 
 int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 {
 #ifdef _DEBUG
 	AllocConsole();
-	freopen("conin$", "r", stdin);
 	freopen("conout$", "w", stdout);
-	freopen("conout$", "w", stderr);
 #endif
 
 	int argc;
@@ -44,13 +43,13 @@ void RunGUI(bool show)
 	form fm(API::make_center(645, 800), appear::decorate<appear::minimize>());
 	fm.bgcolor(colors::white);
 	fm.caption(TITLE);
-	fm.icon(paint::image(self_path.pathw()));
+	fm.icon(paint::image(wstring(self_path)));
 
 	hwnd = (HWND)fm.native_handle();
 
 	notifier ntfr(fm);
 	ntfr.text(TITLE);
-	ntfr.icon(self_path.path());
+	ntfr.icon(self_path);
 	ntfr.events().dbl_click([&fm] { if(fm.visible()) fm.hide(); else { fm.show(); SetForegroundWindow(hwnd); } });
 	ntfr.events().mouse_up([&fm](const arg_mouse &e)
 	{
@@ -63,7 +62,7 @@ void RunGUI(bool show)
 			GetCursorPos(&pt);
 			int pos(0), ID(2000);
 			InsertMenuA(hpop, pos++, MF_BYPOSITION | MF_STRING, ID, fm.visible() ? "Hide interface" : "Show interface");
-			InsertMenuA(hpop, pos++, MF_BYPOSITION | MF_STRING | (FileExist(stlink.data()) ? MF_CHECKED : 0), ID+1, "Start with Windows");
+			InsertMenuA(hpop, pos++, MF_BYPOSITION | MF_STRING | (FileExist(stlink) ? MF_CHECKED : 0), ID+1, "Start with Windows");
 			InsertMenuA(hpop, pos++, MF_BYPOSITION | MF_STRING, ID+2, "Exit");
 			SetForegroundWindow(hwnd);
 			WORD cmd = TrackPopupMenu(hpop, TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD | TPM_NONOTIFY, pt.x, pt.y, 0, hwnd, NULL);
@@ -75,7 +74,7 @@ void RunGUI(bool show)
 			}
 			else if(cmd == ID+1)
 			{
-				if(FileExist(stlink.data())) DeleteFileW(stlink.data());
+				if(FileExist(stlink)) DeleteFileW(stlink.data());
 				else
 				{
 					HRESULT hres;
@@ -84,7 +83,7 @@ void RunGUI(bool show)
 					if(SUCCEEDED(hres))
 					{
 						IPersistFile *ppf;
-						psl->SetPath(self_path.pathw().data());
+						psl->SetPath(wstring(self_path).data());
 						psl->SetArguments(L"tray");
 						psl->SetDescription(L"This shortcut has been created by Borderless Window Helper, because you "
 							"selected \"Start with Windows\" from the program's tray menu.");
@@ -141,6 +140,9 @@ void RunGUI(bool show)
 	list1.show_header(false);
 	list1.append_header("Dummy header");
 	list1.column_at(0).width(list1.size().width-4);
+	list1.scheme().item_selected = color_rgb(0xdcefe8);
+	list1.scheme().item_highlighted = color_rgb(0xeaf0ef);
+	::list1 = &list1;
 
 	listbox list2(fm, rectangle(list1.pos().x+list1.size().width+padding, list1.pos().y, list1.size().width, list1.size().height));
 	list2.bgcolor(color_rgb(0xfbfbfb));
@@ -150,6 +152,8 @@ void RunGUI(bool show)
 	list2.enable_single(true, false);
 	list2.append_header("Dummy header");
 	list2.column_at(0).width(list2.size().width-4);
+	list2.scheme().item_selected = color_rgb(0xdcefe8);
+	list2.scheme().item_highlighted = color_rgb(0xeaf0ef);
 
 	label lb2(fm, rectangle(list2.pos().x, lb1.pos().y, list2.size().width, lb1.size().height));
 	lb2.fgcolor(color_rgb(0x555555));
@@ -232,14 +236,21 @@ void RunGUI(bool show)
 					lbinfo.typeface(paint::font("Segoe UI", 10, detail::font_style(0)));
 					try
 					{
-						auto &win = windows.at(seltext);
+						const auto &win = windows.at(seltext);
 						string caption = R"(<font="Segoe UI Semibold">PID:</> )" + to_string(win.procid);
 						caption += "  |  <font=\"Segoe UI Semibold\">Window handle:</> " + to_hex_string((unsigned)win.hwnd);
-						caption += "  |  Window " + (win.borderless ? "doesn't have a border"s : "has a border (monitoring will remove it)"s);
+						caption += "  |  Window ";
+						if(win.borderless)
+						{
+							if(monwins.find(seltext) != monwins.end() && monwins[seltext].style) 
+								caption += "border has been removed";
+							else caption += "doesn't have a border";
+						}
+						else caption += "has a border (monitoring will remove it)";
 						caption += "\n\n<font=\"Segoe UI Semibold\">Window title:</> " + charset(win.captionw).to_bytes(unicode::utf8);
 						lbinfo.caption(caption);
 					}
-					catch(out_of_range&) {}
+					catch(out_of_range&) { lbinfo.caption("Unexpected error - can't find window!"); }
 					last = seltext;
 				}
 			}
@@ -262,17 +273,21 @@ void RunGUI(bool show)
 					lbinfo.text_align(align::center, align_v::center);
 					lbinfo.typeface(paint::font("Segoe UI", 10, detail::font_style(0, true)));
 					string caption;
-					try { windows.at(seltext); }
-					catch(out_of_range&) {
-						caption = string("The process is not currently running.") + (monwins.at(seltext).style ?
-							" Its window has borders, which will be removed when it is run." : "");
-					}
+					if(windows.find(seltext) == windows.end())
+						caption += string("The process is not currently running.") + (monwins.at(seltext).style ?
+							" Its window has a border, which will be removed when it is run." : "");
 					if(caption.empty())
 					{
-						caption = "The process is currently running, and its window is being monitored and "
-							"will be minimized while not in the foreground.";
-						if(monwins.at(seltext).style) caption += " The borders have been removed, and the window "
+						caption = "The process is currently running. Its window is being monitored and "
+							"will be minimized while not in focus.";
+						if(monwins.at(seltext).style) caption += " The border has been removed, and the window "
 							"has been resized to fill the screen.";
+					}
+					string modpath = monwins.at(seltext).modpath;
+					if(modpath.size())
+					{
+						if(caption.find("has been removed") == string::npos) caption += "\n";
+						caption += "\n<color=0x117011>" + modpath + "</>";
 					}
 					lbinfo.caption(caption);
 					last = seltext;
@@ -361,6 +376,22 @@ void RunGUI(bool show)
 	{
 		if(LOWORD(wparam) == WA_ACTIVE || LOWORD(wparam) == WA_CLICKACTIVE)
 		{
+			for(auto &monwin : monwins)
+			{
+				wstring modpath = monwin.second.modpath;
+				if(modpath.size() && !FileExist(modpath))
+				{
+					monwin.second.modpath = ""s;
+					for(auto &item : list1.at(0))
+					{
+						if(monwin.second.pname == item.text(0))
+						{
+							item.icon(iconapp);
+							break;
+						}
+					}
+				}
+			}
 			last.clear();
 			enum_timer_fn(list1, list2, lbinfo);
 			auto selection = list1.selected();
@@ -408,7 +439,7 @@ void mon_timer_fn()
 			{
 				string fgclassname(1024, '\0');
 				fgclassname.resize(GetClassNameA(fghwnd, &fgclassname.front(), fgclassname.size()));
-				if(fgclassname != "TaskSwitcherWnd")
+				if(fgclassname != "TaskSwitcherWnd" && fgclassname != "Ghost")
 				{
 					monwin.second.active = false;
 					PostMessage(win.hwnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
@@ -424,7 +455,7 @@ void enum_timer_fn(listbox &list1, listbox &list2, label &info)
 {
 	enum_windows();
 	auto lb1 = list1.at(0), lb2 = list2.at(0);
-	auto selection1 = list1.selected(), selection2 = list2.selected();;
+	auto selection1 = list1.selected(), selection2 = list2.selected();
 	string seltext1, seltext2;
 	if(selection2.size() == 1) 
 		seltext2 = lb2.at(selection2[0].item).text(0);
@@ -439,8 +470,8 @@ void enum_timer_fn(listbox &list1, listbox &list2, label &info)
 	list2.auto_draw(false);
 	for(auto &item : lb2) // remove from list2 processes no longer running
 	{
-		try { windows.at(strlower(item.text(0))); }
-		catch(out_of_range&) { list2.erase(item); }
+		if(windows.find(strlower(item.text(0))) == windows.end()) 
+			list2.erase(item);
 	}
 	for(auto &win : windows) // add to list2 running processes that are not already in the list
 	{
@@ -451,11 +482,7 @@ void enum_timer_fn(listbox &list1, listbox &list2, label &info)
 				found = true;
 				break;
 			}
-		if(!found)
-		{
-			//cout << procname << "  ";
-			lb2.push_back(win.second.pname);
-		}
+		if(!found) lb2.push_back(win.second.pname);
 	}
 
 	sort_list(list2);
@@ -474,10 +501,16 @@ void enum_timer_fn(listbox &list1, listbox &list2, label &info)
 		list1.auto_draw(false);
 		for(auto &item : list1.at(0))
 		{
-			try { windows.at(strlower(item.text(0))); }
-			catch(out_of_range&) { item.fgcolor(list1.fgcolor()); item.bgcolor(list1.bgcolor()); continue; }
-			item.fgcolor(color_rgb(0x663311));
-			item.bgcolor(color_rgb(0xffffff));
+			if(windows.find(strlower(item.text(0))) == windows.end())
+			{
+				item.fgcolor(list1.fgcolor()); 
+				item.bgcolor(list1.bgcolor());
+			}
+			else
+			{
+				item.fgcolor(color_rgb(0x663311));
+				item.bgcolor(color_rgb(0xffffff));
+			}
 		}
 		list1.auto_draw(true);
 	}
@@ -498,9 +531,8 @@ void enum_windows()
 			GetWindowThreadProcessId(hwnd, &procid);
 			HANDLE hproc = OpenProcess(PROCESS_QUERY_INFORMATION|PROCESS_VM_READ, 0, procid);
 			wstring procname(2048, '\0');
-			GetModuleFileNameEx(hproc, NULL, &procname.front(), procname.size());
-			procname.resize(procname.find(L'\0'));
-			if(procname != self_path.pathw())
+			procname.resize(GetModuleFileNameEx(hproc, NULL, &procname.front(), procname.size()));
+			if(procname != wstring(self_path))
 			{
 				enumwin win;
 				win.procid = procid;
@@ -510,7 +542,24 @@ void enum_windows()
 				win.monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY);
 				win.captionw = caption;
 				if(!(style & (WS_CAPTION|WS_THICKFRAME))) win.borderless = true;
-				windows[strlower(procpath.fullname())] = win;
+				string key = strlower(procpath.fullname());
+				windows[key] = win;
+				if(icons.find(key) == icons.end())
+					icons[key] = paint::image(procname);
+				try
+				{
+					if(string(monwins.at(key).modpath).empty())
+					{
+						monwins[key].modpath = procpath;
+						for(auto &item : list1->at(0))
+							if(item.text(0) == procpath.fullname())
+							{
+								item.icon(icons[key]);
+								break;
+							}
+					}
+				}
+				catch(out_of_range&) {}
 			}
 		}
 		return TRUE;
@@ -529,8 +578,7 @@ bool am_i_already_running()
 		GetWindowThreadProcessId(hwnd, &procid);
 		HANDLE hproc = OpenProcess(PROCESS_QUERY_INFORMATION|PROCESS_VM_READ, 0, procid);
 		wstring procname(2048, '\0');
-		GetModuleFileNameEx(hproc, NULL, &procname.front(), procname.size());
-		procname.resize(procname.find(L'\0'));
+		procname.resize(GetModuleFileNameEx(hproc, NULL, &procname.front(), procname.size()));
 		if(procname.substr(procname.rfind('\\')+1) == self_path.fullnamew())
 		{
 			wstring caption(2048, '\0');
@@ -565,7 +613,11 @@ void sort_list(listbox &list)
 	};
 	sort(strings.begin(), strings.end(), cmpfn);
 	for(size_t n(0); n<strings.size(); n++)
+	{
+		try { lb.at(n).icon(icons.at(strlower(strings[n]))); }
+		catch(out_of_range&) { lb.at(n).icon(iconapp); }
 		lb.at(n).text(0, move(strings[n]));
+	}
 }
 
 
@@ -581,10 +633,22 @@ void LoadSettings()
 		if(pname.size())
 		{
 			style = ini.ReadInt(to_string(n++), "s", 0);
-			monwins[strlower(pname)] = {style, false, pname};
+			if(pname.find('\\') != string::npos)
+			{
+				filepath p(pname);
+				string key = strlower(p.fullname());
+				if(FileExist(pname))
+				{
+					icons[key] = paint::image(pname);
+					monwins[key] = {style, false, p.fullname(), p};
+				}
+				else monwins[key] = {style, false, p.fullname()};
+			}
+			else monwins[strlower(pname)] = {style, false, pname};
 		}
 	}
 	while(pname.size());
+	iconapp.open(ini_file::GetSysFolderLocation(CSIDL_SYSTEM) + L"\\svchost.exe");
 }
 
 
@@ -595,8 +659,8 @@ void SaveSettings()
 	int idx(0);
 	for(auto &monwin : monwins)
 	{
-		string s = to_string(idx++);
-		ini.WriteString(s, "p", monwin.second.pname);
+		string s = to_string(idx++), modpath = monwin.second.modpath;
+		ini.WriteString(s, "p", modpath.empty() ? monwin.second.pname : modpath);
 		ini.WriteInt(s, "s", monwin.second.style);
 	}
 }

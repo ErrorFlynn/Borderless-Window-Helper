@@ -6,13 +6,14 @@
 #include "util.h"
 #include <string>
 #include <map>
+#include <unordered_map>
 
 #pragma warning( disable : 4800 4267 4996)
 #pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' \
 	processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
-#define TITLE "Borderless Window Helper 1.2"
-#define TITLEW L"Borderless Window Helper 1.2"
+#define TITLE "Borderless Window Helper 1.3"
+#define TITLEW L"Borderless Window Helper 1.3"
 
 using namespace std;
 using namespace nana;
@@ -21,15 +22,17 @@ string last;
 wstring inifile;
 filepath self_path;
 HWND hwnd;
-bool mintray(true);
+paint::image iconapp;
+listbox *list1(nullptr);
 
 struct monwin
 {
 	int style = 0;
 	bool active = false;
 	string pname; // process name as displayed in the list (not lowercased)
+	filepath modpath; // module path necessary for getting icon from module
 	monwin() {}
-	monwin(int st, bool a, string pn) { style = st, active = a; pname = pn; }
+	monwin(int st, bool a, string pn, filepath mpath = ""s) { style = st, active = a; pname = pn; modpath = mpath; }
 };
 
 map<string, monwin> monwins; // key is lowercase process name
@@ -45,6 +48,8 @@ struct enumwin
 };
 
 map<string, enumwin> windows; // key is lowercase process name
+
+unordered_map<string, paint::image> icons;
 
 
 void LoadSettings();
