@@ -2,7 +2,7 @@
 
 ## Description
 
-Borderless Window Helper is a tool that primarily minimizes the borderless windows of games when they are not in the foreground, and as a secondary function, it can also "maximize" and remove the borders of game windows that are not full-screen. It works by maintaining a list of processes whose windows you want to affect, monitoring the windows of those processes when they run.
+Borderless Window Helper is a tool that primarily minimizes the borderless windows of games when they are not in focus, and as a secondary function, it can also "maximize" and remove the borders of game windows that are not full-screen. It works by maintaining a list of processes whose windows you want to affect, monitoring the windows of those processes when they run.
 
 ![Screenshot of version 1.3](https://user-images.githubusercontent.com/20293505/28013408-eca6278e-6536-11e7-8967-1fb94e7477a7.png)
 
