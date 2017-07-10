@@ -4,6 +4,8 @@
 
 Borderless Window Helper is a tool that primarily minimizes the borderless windows of games when they are not in the foreground, and as a secondary function, it can also "maximize" and remove the borders of game windows that are not full-screen. It works by maintaining a list of processes whose windows you want to affect, monitoring the windows of those processes when they run.
 
+![Screenshot of version 1.3](https://user-images.githubusercontent.com/20293505/28013408-eca6278e-6536-11e7-8967-1fb94e7477a7.png)
+
 ## How to use
 
 Download the latest version (linked below), then unpack the archive into a new folder at a location of your choice, and run `Borderless Window Helper.exe` (there's no installation, the program is portable).
@@ -31,5 +33,3 @@ GetModuleFileNameEx sometimes returns "GWENT.exe" instead of "Gwent.exe", and I 
 
 ---
 [Borderless Window Helper 1.0.zip](https://github.com/ErrorFlynn/Borderless-Window-Helper/releases/download/v1.0/Borderless.Window.Helper.1.0.zip)
-
-![Screenshot of version 1.0](https://cloud.githubusercontent.com/assets/20293505/26132606/6f7c6fa8-3a6f-11e7-9b08-44cd5b8eb4e7.png)
