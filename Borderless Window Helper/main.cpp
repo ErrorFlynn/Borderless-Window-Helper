@@ -222,9 +222,10 @@ void RunGUI(bool show)
 				{
 					lbinfo.text_align(align::left);
 					lbinfo.typeface(paint::font("Segoe UI", 10, detail::font_style(0)));
-					try
+					auto it = windows.find(seltext);
+					if (it != windows.end())
 					{
-						const auto &win = windows.at(seltext);
+						const auto &win = it->second;
 						string caption = R"(<font="Segoe UI Semibold">PID:</> )" + to_string(win.procid);
 						caption += "  |  <font=\"Segoe UI Semibold\">Window handle:</> " + to_hex_string(win.hwnd);
 						caption += "  |  Window ";
@@ -238,7 +239,7 @@ void RunGUI(bool show)
 						caption += "\n\n<font=\"Segoe UI Semibold\">Window title:</> " + charset(win.captionw).to_bytes(unicode::utf8);
 						lbinfo.caption(caption);
 					}
-					catch(out_of_range&) { lbinfo.caption("Unexpected error - can't find window!"); }
+					else { lbinfo.caption("Unexpected error - can't find window!"); }
 					last = seltext;
 				}
 			}
@@ -312,10 +313,11 @@ void RunGUI(bool show)
 			for(auto &selitem : selection)
 			{
 				string seltext = strlower(lb.at(selitem.item-deleted).text(0));
-				enumwin *win(nullptr);
-				try { win = &windows.at(seltext); }
-				catch(out_of_range&) {}
-				if(win && monwins.at(seltext).style) SetWindowLongPtr(win->hwnd, GWL_STYLE, monwins.at(seltext).style);
+				auto it = windows.find(seltext);
+				if (it != windows.end()) {
+					const enumwin& win = it->second;
+					if(monwins.at(seltext).style) SetWindowLongPtr(win.hwnd, GWL_STYLE, monwins.at(seltext).style);
+				}
 				monwins.erase(seltext);
 				list1.erase(lb.at(selitem.item-deleted++));
 				list1.column_at(0).width(list1.size().width - 10);
@@ -330,10 +332,12 @@ void RunGUI(bool show)
 		if(selection.size() == 1)
 		{
 			string seltext = strlower(lb.at(selection[0].item).text(0));
-			enumwin *win(nullptr);
-			try { win = &windows.at(seltext); }
-			catch(out_of_range&) {}
-			if(win && monwins.at(seltext).style) SetWindowLongPtr(win->hwnd, GWL_STYLE, monwins.at(seltext).style);
+			auto it = windows.find(seltext);
+			if (it != windows.end())
+			{
+				const enumwin& win = it->second;
+				if(monwins.at(seltext).style) SetWindowLongPtr(win.hwnd, GWL_STYLE, monwins.at(seltext).style);
+			}
 			monwins.erase(seltext);
 			list1.erase(lb.at(selection[0].item));
 			list1.column_at(0).width(list1.size().width - 10);
@@ -409,8 +413,9 @@ void mon_timer_fn()
 	for(auto &monwin : monwins)
 	{
 		static enumwin win;
-		try { win = windows.at(strlower(monwin.second.pname)); }
-		catch(out_of_range&) { continue; } // process not running
+		auto it = windows.find(strlower(monwin.second.pname));
+		if (it == windows.end()) continue; // process not running
+		win = it->second;
 		if(!win.borderless) // remove borders
 		{
 			MONITORINFO mi = {sizeof(mi)};
@@ -529,11 +534,12 @@ void enum_windows()
 				windows[key] = win;
 				if(icons.find(key) == icons.end())
 					icons[key] = paint::image(procpath);
-				try
+				auto it = monwins.find(key);
+				if (it != monwins.end())
 				{
-					if(monwins.at(key).modpath.empty())
+					if(it->second.modpath.empty())
 					{
-						monwins[key].modpath = procpath;
+						it->second.modpath = procpath;
 						for(auto &item : list1->at(0))
 							if(item.text(0) == procpath.filename())
 							{
@@ -542,7 +548,6 @@ void enum_windows()
 							}
 					}
 				}
-				catch(out_of_range&) {}
 			}
 		}
 		return TRUE;
