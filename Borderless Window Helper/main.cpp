@@ -52,8 +52,8 @@ void RunGUI(bool show)
 	{
 		if(e.right_button)
 		{
-			static std::filesystem::path stlink = GetSysFolderLocation(CSIDL_APPDATA);
-			stlink /= L"microsoft\\windows\\start menu\\programs\\startup\\Borderless Window Helper.lnk";
+			static std::filesystem::path stlink = GetSysFolderLocation(CSIDL_APPDATA) /
+			L"microsoft\\windows\\start menu\\programs\\startup\\Borderless Window Helper.lnk";
 			HMENU hpop = CreatePopupMenu();
 			POINT pt;
 			GetCursorPos(&pt);
