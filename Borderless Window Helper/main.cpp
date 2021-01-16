@@ -133,6 +133,11 @@ void RunGUI(bool show)
 	lb1.fgcolor(color_rgb(0x555555));
 	lb1.caption("Processes with windows being monitored:");
 
+	auto itemComparator = []( const std::string& s1, nana::any*, const std::string& s2, nana::any*, bool reverse) {
+		int res = _stricmp(s1.c_str(), s2.c_str());
+		return reverse ? res > 0 : res < 0;
+	};
+
 	listbox list1(fm, rectangle(lb1.pos().x, lb1.pos().y+lb1.size().height+5, 300, 600));
 	list1.bgcolor(color_rgb(0xfbfbfb));
 	list1.fgcolor(color_rgb(0x909090));
@@ -141,6 +146,7 @@ void RunGUI(bool show)
 	list1.column_at(0).width(list1.size().width-4);
 	list1.scheme().item_selected = color_rgb(0xdcefe8);
 	list1.scheme().item_highlighted = color_rgb(0xeaf0ef);
+	list1.set_sort_compare(0, itemComparator);
 	::list1 = &list1;
 
 	listbox list2(fm, rectangle(list1.pos().x+list1.size().width+padding, list1.pos().y, list1.size().width, list1.size().height));
@@ -153,6 +159,7 @@ void RunGUI(bool show)
 	list2.column_at(0).width(list2.size().width-4);
 	list2.scheme().item_selected = color_rgb(0xdcefe8);
 	list2.scheme().item_highlighted = color_rgb(0xeaf0ef);
+	list2.set_sort_compare(0, itemComparator);
 
 	label lb2(fm, rectangle(list2.pos().x, lb1.pos().y, list2.size().width, lb1.size().height));
 	lb2.fgcolor(color_rgb(0x555555));
@@ -193,7 +200,7 @@ void RunGUI(bool show)
 			monwins[strlower(seltext)] = {style, false, seltext};
 			list1.auto_draw(false);
 			list1.at(0).push_back(seltext);
-			sort_list(list1);
+			list1.sort_col();
 			list1.column_at(0).width(list1.size().width - (21*lb.size() < list1.size().height-20 ? 4 : 20));
 			list1.auto_draw(true);
 			mon_timer_fn();
@@ -368,7 +375,7 @@ void RunGUI(bool show)
 	list1.auto_draw(false);
 	for(auto &monwin : monwins) list1.at(0).push_back(monwin.second.pname);
 	list1.column_at(0).width(list1.size().width - (21*list1.at(0).size() < list1.size().height-20 ? 4 : 20));
-	sort_list(list1);
+	list1.sort_col();
 	list1.auto_draw(true);
 	
 	sc.make_before(WM_ACTIVATE, [&list1, &list2, &lbinfo](UINT, WPARAM wparam, LPARAM, LRESULT*)
@@ -484,7 +491,7 @@ void enum_timer_fn(listbox &list1, listbox &list2, label &info)
 		if(!found) lb2.push_back(win.second.pname);
 	}
 
-	sort_list(list2);
+	list2.sort_col();
 
 	for(auto &item : list2.at(0))
 	{
@@ -573,29 +580,6 @@ bool am_i_already_running()
 {
 	CreateMutexW(NULL, FALSE, TITLEW);
 	return GetLastError() == ERROR_ALREADY_EXISTS;
-}
-
-
-void sort_list(listbox &list)
-{
-	auto lb = list.at(0);
-	vector<string> strings;
-	for(auto &item : lb) strings.push_back(item.text(0));
-	auto cmpfn = [](const string &left, const string &right) -> bool
-	{
-		for(auto li = left.begin(), ri = right.begin(); li != left.end() && ri != right.end(); ++li, ++ri)
-			if(tolower(*li) < tolower(*ri)) return true;
-			else if(tolower(*li) > tolower(*ri)) return false;
-		if(left.size() < right.size()) return true;
-		return false;
-	};
-	sort(strings.begin(), strings.end(), cmpfn);
-	for(size_t n(0); n<strings.size(); n++)
-	{
-		try { lb.at(n).icon(icons.at(strlower(strings[n]))); }
-		catch(out_of_range&) { lb.at(n).icon(iconapp); }
-		lb.at(n).text(0, move(strings[n]));
-	}
 }
 
 

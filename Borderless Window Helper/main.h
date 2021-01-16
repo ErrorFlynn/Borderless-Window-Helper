@@ -59,4 +59,3 @@ void enum_windows();
 void enum_timer_fn(listbox &list1, listbox &list2, label &info);
 void mon_timer_fn();
 bool am_i_already_running();
-void sort_list(listbox&);
