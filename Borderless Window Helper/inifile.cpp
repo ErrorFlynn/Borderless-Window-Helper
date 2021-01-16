@@ -21,7 +21,7 @@ void IniFile::LoadData()
 	bool b = FileExist(safe_fname);
 	if(!b && !FileExist(fname)) return;
 
-	ifstream file(b ? safe_fname : fname, ios::ate);
+	ifstream file(b ? safe_fname.c_str() : fname.c_str(), ios::ate);
 	if(!file.is_open()) return;
 	size_t size = (size_t)file.tellg();
 	if(!size) return;
@@ -68,10 +68,10 @@ void IniFile::SaveData()
 {
 	if(sections.empty() || sections[0].entries.empty()) return;
 	bool b = FileExist(safe_fname);
-	ofstream file(b ? safe_fname : fname, ios::trunc);
+	ofstream file(b ? safe_fname.c_str() : fname.c_str(), ios::trunc);
 	if(!file.is_open())
 	{
-		file.open(safe_fname, ios::trunc);
+		file.open(safe_fname.c_str(), ios::trunc);
 		if(!file.is_open()) return;
 	}
 	if(sort_sections) sort(sections.begin(), sections.end(), [](section a, section b) {

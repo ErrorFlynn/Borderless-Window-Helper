@@ -67,7 +67,7 @@ wstring MakeTempFolder(wstring folder)
 }
 
 
-string to_hex_string(unsigned i)
+string to_hex_string(HWND i)
 {
 	stringstream ss;
 	ss << hex << i;
@@ -75,7 +75,7 @@ string to_hex_string(unsigned i)
 }
 
 
-filepath::filepath(const string s)
+filepath::filepath(const string& s)
 {
 	path_ = s;
 	mbtowc(s, pathw_);
@@ -91,7 +91,7 @@ filepath::filepath(const string s)
 	mbtowc(fullname_, fullnamew_);
 }
 
-filepath::filepath(const wstring s)
+filepath::filepath(const wstring& s)
 {
 	pathw_ = s;
 	wctomb(s, path_);

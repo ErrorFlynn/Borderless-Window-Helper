@@ -1,0 +1,4 @@
+#include "afxres.h"
+
+// IDI_ICON
+101                ICON    "window.ico"

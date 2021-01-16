@@ -69,7 +69,7 @@ namespace ini_file
 	static wstring GetSysFolderLocation(int csidl)
 	{
 		LPITEMIDLIST pidl;
-		if(SHGetFolderLocation(NULL, csidl, NULL, NULL, &pidl) == S_OK)
+		if(SHGetFolderLocation(NULL, csidl, NULL, 0, &pidl) == S_OK)
 		{
 			WCHAR path[_MAX_PATH];
 			BOOL ret = SHGetPathFromIDListW(pidl, path);

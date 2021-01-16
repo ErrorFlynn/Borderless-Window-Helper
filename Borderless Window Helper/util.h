@@ -2,7 +2,7 @@
 #include <Windows.h>
 #include <string>
 #include <chrono>
-#include <experimental/filesystem>
+#include <filesystem>
 
 #pragma warning( disable : 4800 4267 4996)
 
@@ -17,8 +17,8 @@ private:
 
 public:
 	filepath() {}
-	filepath(string);
-	filepath(wstring);
+	filepath(const string&);
+	filepath(const wstring&);
 	operator string() { return path_; }
 	operator wstring() { return pathw_; }
 	string dir() { return dir_; }
@@ -36,18 +36,18 @@ public:
 static void wctomb(const wstring &wcstr, string &mbstr, unsigned cp = CP_UTF8)
 {
 	if(wcstr.empty()) return;
-	int len = WideCharToMultiByte(cp, NULL, wcstr.data(), -1, nullptr, 0, NULL, NULL);
+	int len = WideCharToMultiByte(cp, 0, wcstr.data(), -1, nullptr, 0, NULL, NULL);
 	mbstr.assign(len-1, '\0');
-	WideCharToMultiByte(cp, NULL, wcstr.data(), -1, &mbstr.front(), len-1, NULL, NULL);
+	WideCharToMultiByte(cp, 0, wcstr.data(), -1, &mbstr.front(), len-1, NULL, NULL);
 }
 
 // UTF8 conversion of multibyte string (std::string) to wide character string (std::wstring)
 static void mbtowc(const string &mbstr, wstring &wcstr, unsigned cp = CP_UTF8)
 {
 	if(mbstr.empty()) return;
-	int len = MultiByteToWideChar(cp, NULL, mbstr.data(), -1, nullptr, 0);
+	int len = MultiByteToWideChar(cp, 0, mbstr.data(), -1, nullptr, 0);
 	wcstr.assign(len-1, '\0');
-	MultiByteToWideChar(cp, NULL, mbstr.data(), -1, &wcstr.front(), len-1);
+	MultiByteToWideChar(cp, 0, mbstr.data(), -1, &wcstr.front(), len-1);
 }
 
 static string strlower(string s) { for(auto &c : s) c = tolower(c); return move(s); }
@@ -56,12 +56,12 @@ static wstring strlower(wstring s) { for(auto &c : s) c = tolower(c); return mov
 LONGLONG GetFileSize(LPCWSTR);
 string GetLastErrorStr();
 wstring GetLastErrorStrW();
-string to_hex_string(unsigned);
+string to_hex_string(HWND);
 // NO trailing backslash
 wstring GetAppFolder();
 filepath AppPath();
 wstring MakeTempFolder(wstring);
-template<typename T> bool FileExist(const T &fname) { return experimental::filesystem::exists(fname); }
+template<typename T> bool FileExist(const T &fname) { return filesystem::exists(fname); }
 
 
 class chronometer

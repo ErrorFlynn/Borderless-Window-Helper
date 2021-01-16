@@ -3,7 +3,6 @@
 #include "nana_subclassing.h"
 #include <Psapi.h>
 #include <nana/gui/notifier.hpp>
-#include <nana/gui/wvl.hpp>
 #include <iostream>
 #include <algorithm>
 #include <cassert>
@@ -238,7 +237,7 @@ void RunGUI(bool show)
 					{
 						const auto &win = windows.at(seltext);
 						string caption = R"(<font="Segoe UI Semibold">PID:</> )" + to_string(win.procid);
-						caption += "  |  <font=\"Segoe UI Semibold\">Window handle:</> " + to_hex_string((unsigned)win.hwnd);
+						caption += "  |  <font=\"Segoe UI Semibold\">Window handle:</> " + to_hex_string(win.hwnd);
 						caption += "  |  Window ";
 						if(win.borderless)
 						{
@@ -356,13 +355,13 @@ void RunGUI(bool show)
 	fm.size({fm.size().width, frame.pos().y+frame.size().height+padding+1});
 
 	timer enum_timer;
-	enum_timer.interval(1000);
+	enum_timer.interval(1000ms);
 	enum_timer.elapse([&list1, &list2, &lbinfo] { enum_timer_fn(list1, list2, lbinfo); });
 	enum_timer.start();
 	enum_timer_fn(list1, list2, lbinfo);
 
 	timer mon_timer;
-	mon_timer.interval(250);
+	mon_timer.interval(250ms);
 	mon_timer.elapse(mon_timer_fn);
 	mon_timer.start();
 
@@ -420,7 +419,7 @@ void mon_timer_fn()
 {
 	for(auto &monwin : monwins)
 	{
-		static enumwin &win = enumwin();
+		static enumwin win;
 		try { win = windows.at(strlower(monwin.second.pname)); }
 		catch(out_of_range&) { continue; } // process not running
 		if(!win.borderless) // remove borders
