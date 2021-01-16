@@ -580,7 +580,7 @@ void LoadSettings()
 		}
 	}
 	while(pname.size());
-	iconapp.open(GetSysFolderLocation(CSIDL_SYSTEM) / L"\\svchost.exe");
+	iconapp.open(GetSysFolderLocation(CSIDL_SYSTEM) / L"svchost.exe");
 }
 
 
