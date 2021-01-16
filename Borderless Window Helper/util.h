@@ -9,18 +9,16 @@
 using namespace std;
 
 
-static string strlower(string s) { for(auto &c : s) c = tolower(c); return s; }
-static wstring strlower(wstring s) { for(auto &c : s) c = tolower(c); return s; }
+string strlower(string s);
+wstring strlower(wstring s);
 
 string to_hex_string(HWND);
-// NO trailing backslash
-wstring GetAppFolder();
 std::filesystem::path AppPath();
 wstring MakeTempFolder(wstring);
-HRESULT createShortcut(const std::wstring& linkFileName, const std::filesystem::path& targetPath, const std::wstring& arguments,
+HRESULT createShortcut(const std::filesystem::path& linkFileName, const std::filesystem::path& targetPath, const std::wstring& arguments,
 const std::wstring& description);
 std::filesystem::path GetModuleFileNameExPath(HANDLE hProcess);
-wstring GetSysFolderLocation(int csidl);
+std::filesystem::path GetSysFolderLocation(int csidl);
 std::wstring GetClassNameString(HWND hWnd);
 std::wstring GetWindowTextString(HWND hWnd);
 

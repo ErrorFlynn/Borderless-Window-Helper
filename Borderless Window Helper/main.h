@@ -19,7 +19,7 @@ using namespace std;
 using namespace nana;
 
 string last;
-wstring inifile;
+std::filesystem::path inifile;
 std::filesystem::path self_path;
 HWND hwnd;
 paint::image iconapp;
@@ -32,7 +32,7 @@ struct monwin
 	string pname; // process name as displayed in the list (not lowercased)
 	std::filesystem::path modpath; // module path necessary for getting icon from module
 	monwin() {}
-	monwin(int st, bool a, string pn, const std::filesystem::path& mpath = ""s) { style = st, active = a; pname = pn; modpath = mpath; }
+	monwin(int st, bool a, string pn, const std::filesystem::path& mpath = ""s): style(st), active(a), pname(pn), modpath(mpath) {}
 };
 
 map<string, monwin> monwins; // key is lowercase process name
@@ -58,4 +58,3 @@ void RunGUI(bool show);
 void enum_windows();
 void enum_timer_fn(listbox &list1, listbox &list2, label &info);
 void mon_timer_fn();
-bool am_i_already_running();

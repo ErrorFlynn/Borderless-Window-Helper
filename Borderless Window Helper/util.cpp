@@ -3,13 +3,6 @@
 #include <sstream> // to_hex_string()
 #include <shlobj.h>
 
-wstring GetAppFolder()
-{
-	auto appPath = AppPath();
-	return appPath.parent_path().wstring();
-}
-
-
 std::filesystem::path AppPath()
 {
   std::wstring filename;
@@ -64,7 +57,7 @@ string to_hex_string(HWND i)
 }
 
 
-HRESULT createShortcut(const std::wstring& linkFileName, const std::filesystem::path& targetPath, const std::wstring& arguments,
+HRESULT createShortcut(const std::filesystem::path& linkFileName, const std::filesystem::path& targetPath, const std::wstring& arguments,
 const std::wstring& description) {
 	HRESULT hres;
 	IShellLinkW *psl;
@@ -72,7 +65,7 @@ const std::wstring& description) {
 	if(SUCCEEDED(hres))
 	{
 		IPersistFile *ppf;
-		psl->SetPath(targetPath.wstring().c_str());
+		psl->SetPath(targetPath.c_str());
 		psl->SetArguments(arguments.c_str());
 		psl->SetDescription(description.c_str());
 		hres = psl->QueryInterface(IID_IPersistFile, (LPVOID*)&ppf);
@@ -86,7 +79,7 @@ const std::wstring& description) {
 	return hres;
 }
 
-wstring GetSysFolderLocation(int csidl)
+std::filesystem::path GetSysFolderLocation(int csidl)
 {
 	LPITEMIDLIST pidl;
 	if(SHGetFolderLocation(NULL, csidl, NULL, 0, &pidl) == S_OK)
@@ -126,3 +119,6 @@ std::wstring GetWindowTextString(HWND hWnd) {
 	caption.resize(nRet);
 	return caption;
 }
+
+string strlower(string s) { for(auto &c : s) c = tolower(c); return s; }
+wstring strlower(wstring s) { for(auto &c : s) c = tolower(c); return s; }

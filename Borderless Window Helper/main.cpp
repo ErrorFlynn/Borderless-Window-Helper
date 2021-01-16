@@ -17,9 +17,10 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 	LocalFree(argv);
 
 	self_path = AppPath();
-	inifile = (self_path.parent_path() / L"bwh.ini").wstring();
+	inifile = self_path.parent_path() / L"bwh.ini";
 
-	if(am_i_already_running())
+	CreateMutexW(NULL, FALSE, TITLEW);
+	if(GetLastError() == ERROR_ALREADY_EXISTS)
 	{
 		MessageBoxW(NULL, L"An instance of the program is already running! Press OK to exit.", TITLEW, MB_ICONEXCLAMATION);
 		return 0;
@@ -39,7 +40,7 @@ void RunGUI(bool show)
 	form fm(API::make_center(645, 800), appear::decorate<appear::minimize>());
 	fm.bgcolor(colors::white);
 	fm.caption(TITLE);
-	fm.icon(paint::image(self_path.wstring()));
+	fm.icon(paint::image(self_path));
 
 	hwnd = (HWND)fm.native_handle();
 
@@ -51,7 +52,7 @@ void RunGUI(bool show)
 	{
 		if(e.right_button)
 		{
-			static wstring stlink = GetSysFolderLocation(CSIDL_APPDATA) +
+			static std::filesystem::path stlink = GetSysFolderLocation(CSIDL_APPDATA) /
 				L"\\microsoft\\windows\\start menu\\programs\\startup\\Borderless Window Helper.lnk";
 			HMENU hpop = CreatePopupMenu();
 			POINT pt;
@@ -70,7 +71,7 @@ void RunGUI(bool show)
 			}
 			else if(cmd == ID+1)
 			{
-				if(std::filesystem::exists(stlink)) DeleteFileW(stlink.c_str());
+				if(std::filesystem::exists(stlink)) std::filesystem::remove(stlink);
 				else
 				{
 					createShortcut(stlink, self_path, L"tray", L"This shortcut has been created by Borderless Window Helper, because you "
@@ -271,7 +272,7 @@ void RunGUI(bool show)
 							"has been resized to fill the screen.";
 					}
 					string modpath = monwins.at(seltext).modpath.string();
-					if(modpath.size())
+					if(!modpath.empty())
 					{
 						if(caption.find("has been removed") == string::npos) caption += "\n";
 						caption += "\n<color=0x117011>" + modpath + "</>";
@@ -527,14 +528,14 @@ void enum_windows()
 				string key = strlower(procpath.filename().string());
 				windows[key] = win;
 				if(icons.find(key) == icons.end())
-					icons[key] = paint::image(procpath.wstring());
+					icons[key] = paint::image(procpath);
 				try
 				{
 					if(monwins.at(key).modpath.empty())
 					{
 						monwins[key].modpath = procpath;
 						for(auto &item : list1->at(0))
-							if(item.text(0) == procpath.filename().string())
+							if(item.text(0) == procpath.filename())
 							{
 								item.icon(icons[key]);
 								break;
@@ -549,13 +550,6 @@ void enum_windows()
 
 	windows.clear();
 	EnumWindows(enumfn, 0);
-}
-
-
-bool am_i_already_running()
-{
-	CreateMutexW(NULL, FALSE, TITLEW);
-	return GetLastError() == ERROR_ALREADY_EXISTS;
 }
 
 
@@ -586,13 +580,13 @@ void LoadSettings()
 		}
 	}
 	while(pname.size());
-	iconapp.open(GetSysFolderLocation(CSIDL_SYSTEM) + L"\\svchost.exe");
+	iconapp.open(GetSysFolderLocation(CSIDL_SYSTEM) / L"\\svchost.exe");
 }
 
 
 void SaveSettings()
 {
-	DeleteFileW(inifile.data());
+	std::filesystem::remove(inifile);
 	IniFile ini(inifile);
 	int idx(0);
 	for(auto &monwin : monwins)
