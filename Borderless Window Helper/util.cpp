@@ -82,12 +82,12 @@ const std::wstring& description) {
 std::filesystem::path GetSysFolderLocation(int csidl)
 {
 	LPITEMIDLIST pidl;
-	if(SHGetFolderLocation(NULL, csidl, NULL, 0, &pidl) == S_OK)
+	if(SUCCEEDED(SHGetFolderLocation(NULL, csidl, NULL, 0, &pidl)))
 	{
 		WCHAR path[MAX_PATH];
 		BOOL ret = SHGetPathFromIDListW(pidl, path);
 		LPMALLOC pMalloc;
-		if(SHGetMalloc(&pMalloc) == S_OK)
+		if(SUCCEEDED(SHGetMalloc(&pMalloc)))
 		{
 			pMalloc->Free(pidl);
 			pMalloc->Release();
