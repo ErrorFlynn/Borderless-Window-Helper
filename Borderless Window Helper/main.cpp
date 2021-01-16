@@ -60,9 +60,9 @@ void RunGUI(bool show)
 			POINT pt;
 			GetCursorPos(&pt);
 			int pos(0), ID(2000);
-			InsertMenuA(hpop, pos++, MF_BYPOSITION | MF_STRING, ID, fm.visible() ? "Hide interface" : "Show interface");
-			InsertMenuA(hpop, pos++, MF_BYPOSITION | MF_STRING | (std::filesystem::exists(stlink) ? MF_CHECKED : 0), ID+1, "Start with Windows");
-			InsertMenuA(hpop, pos++, MF_BYPOSITION | MF_STRING, ID+2, "Exit");
+			InsertMenuW(hpop, pos++, MF_BYPOSITION | MF_STRING, ID, fm.visible() ? L"Hide interface" : L"Show interface");
+			InsertMenuW(hpop, pos++, MF_BYPOSITION | MF_STRING | (std::filesystem::exists(stlink) ? MF_CHECKED : 0), ID+1, L"Start with Windows");
+			InsertMenuW(hpop, pos++, MF_BYPOSITION | MF_STRING, ID+2, L"Exit");
 			SetForegroundWindow(hwnd);
 			WORD cmd = TrackPopupMenu(hpop, TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD | TPM_NONOTIFY, pt.x, pt.y, 0, hwnd, NULL);
 			DestroyMenu(hpop);
@@ -73,7 +73,7 @@ void RunGUI(bool show)
 			}
 			else if(cmd == ID+1)
 			{
-				if(std::filesystem::exists(stlink)) DeleteFileW(stlink.data());
+				if(std::filesystem::exists(stlink)) DeleteFileW(stlink.c_str());
 				else
 				{
 					HRESULT hres;
@@ -82,14 +82,14 @@ void RunGUI(bool show)
 					if(SUCCEEDED(hres))
 					{
 						IPersistFile *ppf;
-						psl->SetPath(wstring(self_path).data());
+						psl->SetPath(self_path.wstring().c_str());
 						psl->SetArguments(L"tray");
 						psl->SetDescription(L"This shortcut has been created by Borderless Window Helper, because you "
 							"selected \"Start with Windows\" from the program's tray menu.");
 						hres = psl->QueryInterface(IID_IPersistFile, (LPVOID*)&ppf);
 						if(SUCCEEDED(hres))
 						{
-							hres = ppf->Save(stlink.data(), TRUE);
+							hres = ppf->Save(stlink.c_str(), TRUE);
 							ppf->Release();
 						}
 						psl->Release();
@@ -436,9 +436,9 @@ void mon_timer_fn()
 		{
 			if(fghwnd != win.hwnd && win.monitor == MonitorFromWindow(fghwnd, MONITOR_DEFAULTTOPRIMARY))
 			{
-				string fgclassname(1024, '\0');
-				fgclassname.resize(GetClassNameA(fghwnd, &fgclassname.front(), fgclassname.size()));
-				if(fgclassname != "TaskSwitcherWnd" && fgclassname != "Ghost")
+				wstring fgclassname(1024, '\0');
+				fgclassname.resize(GetClassNameW(fghwnd, &fgclassname.front(), fgclassname.size()));
+				if(fgclassname != L"TaskSwitcherWnd" && fgclassname != L"Ghost")
 				{
 					monwin.second.active = false;
 					PostMessage(win.hwnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
@@ -530,8 +530,8 @@ void enum_windows()
 			GetWindowThreadProcessId(hwnd, &procid);
 			HANDLE hproc = OpenProcess(PROCESS_QUERY_INFORMATION|PROCESS_VM_READ, 0, procid);
 			wstring procname(2048, '\0');
-			procname.resize(GetModuleFileNameEx(hproc, NULL, &procname.front(), procname.size()));
-			if(procname != wstring(self_path))
+			procname.resize(GetModuleFileNameExW(hproc, NULL, &procname.front(), procname.size()));
+			if(procname != self_path.wstring())
 			{
 				enumwin win;
 				win.procid = procid;
@@ -577,7 +577,7 @@ bool am_i_already_running()
 		GetWindowThreadProcessId(hwnd, &procid);
 		HANDLE hproc = OpenProcess(PROCESS_QUERY_INFORMATION|PROCESS_VM_READ, 0, procid);
 		wstring procname(2048, '\0');
-		procname.resize(GetModuleFileNameEx(hproc, NULL, &procname.front(), procname.size()));
+		procname.resize(GetModuleFileNameExW(hproc, NULL, &procname.front(), procname.size()));
 		if(procname.substr(procname.rfind('\\')+1) == self_path.filename().wstring())
 		{
 			wstring caption(2048, '\0');
