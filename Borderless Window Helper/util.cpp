@@ -112,7 +112,7 @@ std::wstring GetWindowTextString(HWND hWnd) {
 	if (len == 0)
 		return L"";
 	wstring caption;
-	caption.resize(len);
+	caption.resize(len+1);
 	int nRet = GetWindowTextW(hWnd, &caption[0], caption.size());
 	if (nRet == 0)
 		return L"";
