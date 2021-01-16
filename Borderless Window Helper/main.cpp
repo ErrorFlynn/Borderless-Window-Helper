@@ -424,8 +424,7 @@ void mon_timer_fn()
 		{
 			if(fghwnd != win.hwnd && win.monitor == MonitorFromWindow(fghwnd, MONITOR_DEFAULTTOPRIMARY))
 			{
-				wstring fgclassname(1024, '\0');
-				fgclassname.resize(GetClassNameW(fghwnd, &fgclassname.front(), fgclassname.size()));
+				wstring fgclassname = GetClassNameString(fghwnd);
 				if(fgclassname != L"TaskSwitcherWnd" && fgclassname != L"Ghost")
 				{
 					monwin.second.active = false;
@@ -509,9 +508,7 @@ void enum_windows()
 	WNDENUMPROC enumfn = [](HWND hwnd, LPARAM lparam) -> BOOL
 	{
 		auto style = GetWindowLongPtr(hwnd, GWL_STYLE);
-		wstring caption(2048, '\0');
-		GetWindowTextW(hwnd, &caption.front(), caption.size());
-		caption.resize(caption.find(L'\0'));
+		wstring caption = GetWindowTextString(hwnd);
 		if((style & WS_VISIBLE) && !caption.empty() && caption != L"Program Manager")
 		{
 			DWORD procid(0);

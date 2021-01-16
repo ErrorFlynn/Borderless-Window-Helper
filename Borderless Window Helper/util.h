@@ -21,6 +21,8 @@ HRESULT createShortcut(const std::wstring& linkFileName, const std::filesystem::
 const std::wstring& description);
 std::filesystem::path GetModuleFileNameExPath(HANDLE hProcess);
 wstring GetSysFolderLocation(int csidl);
+std::wstring GetClassNameString(HWND hWnd);
+std::wstring GetWindowTextString(HWND hWnd);
 
 class chronometer
 {

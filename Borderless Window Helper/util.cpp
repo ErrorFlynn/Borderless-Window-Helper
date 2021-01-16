@@ -67,8 +67,8 @@ string to_hex_string(HWND i)
 HRESULT createShortcut(const std::wstring& linkFileName, const std::filesystem::path& targetPath, const std::wstring& arguments,
 const std::wstring& description) {
 	HRESULT hres;
-	IShellLink *psl;
-	hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (LPVOID*)&psl);
+	IShellLinkW *psl;
+	hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLinkW, (LPVOID*)&psl);
 	if(SUCCEEDED(hres))
 	{
 		IPersistFile *ppf;
@@ -102,4 +102,27 @@ wstring GetSysFolderLocation(int csidl)
 		if(ret) return path;
 	}
 	return L"";
+}
+
+std::wstring GetClassNameString(HWND hWnd) {
+	std::wstring className;
+	className.resize(256);
+	int nRet = GetClassNameW(hWnd, &className[0], className.size());
+	if (nRet == 0)
+		throw std::system_error(GetLastError(), std::system_category());
+	className.resize(nRet);
+	return className;
+}
+
+std::wstring GetWindowTextString(HWND hWnd) {
+	int len = GetWindowTextLengthW(hWnd);
+	if (len == 0)
+		return L"";
+	wstring caption;
+	caption.resize(len);
+	int nRet = GetWindowTextW(hWnd, &caption[0], caption.size());
+	if (nRet == 0)
+		return L"";
+	caption.resize(nRet);
+	return caption;
 }
