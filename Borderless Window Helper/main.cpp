@@ -3,9 +3,6 @@
 #include "nana_subclassing.h"
 #include <Psapi.h>
 #include <nana/gui/notifier.hpp>
-#include <iostream>
-#include <algorithm>
-#include <cassert>
 
 
 int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
