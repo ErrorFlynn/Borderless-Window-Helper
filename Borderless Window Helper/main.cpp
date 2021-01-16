@@ -143,7 +143,7 @@ void RunGUI(bool show)
 	list1.fgcolor(color_rgb(0x909090));
 	list1.show_header(false);
 	list1.append_header("Dummy header");
-	list1.column_at(0).width(list1.size().width-4);
+	list1.column_at(0).width(list1.size().width-10);
 	list1.scheme().item_selected = color_rgb(0xdcefe8);
 	list1.scheme().item_highlighted = color_rgb(0xeaf0ef);
 	list1.set_sort_compare(0, itemComparator);
@@ -156,7 +156,7 @@ void RunGUI(bool show)
 	list2.show_header(false);
 	list2.enable_single(true, false);
 	list2.append_header("Dummy header");
-	list2.column_at(0).width(list2.size().width-4);
+	list2.column_at(0).width(list2.size().width-10);
 	list2.scheme().item_selected = color_rgb(0xdcefe8);
 	list2.scheme().item_highlighted = color_rgb(0xeaf0ef);
 	list2.set_sort_compare(0, itemComparator);
@@ -201,7 +201,7 @@ void RunGUI(bool show)
 			list1.auto_draw(false);
 			list1.at(0).push_back(seltext);
 			list1.sort_col();
-			list1.column_at(0).width(list1.size().width - (21*lb.size() < list1.size().height-20 ? 4 : 20));
+			list1.column_at(0).width(list1.size().width - 10);
 			list1.auto_draw(true);
 			mon_timer_fn();
 			PostMessage(win.hwnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
@@ -336,7 +336,7 @@ void RunGUI(bool show)
 				if(win && monwins.at(seltext).style) SetWindowLongPtr(win->hwnd, GWL_STYLE, monwins.at(seltext).style);
 				monwins.erase(seltext);
 				list1.erase(lb.at(selitem.item-deleted++));
-				list1.column_at(0).width(list1.size().width - (21*lb.size() < list1.size().height-20 ? 4 : 20));
+				list1.column_at(0).width(list1.size().width - 10);
 			}
 		}
 	});
@@ -354,7 +354,7 @@ void RunGUI(bool show)
 			if(win && monwins.at(seltext).style) SetWindowLongPtr(win->hwnd, GWL_STYLE, monwins.at(seltext).style);
 			monwins.erase(seltext);
 			list1.erase(lb.at(selection[0].item));
-			list1.column_at(0).width(list1.size().width - (21*lb.size() < list1.size().height-20 ? 4 : 20));
+			list1.column_at(0).width(list1.size().width - 10);
 			last.clear();
 		}
 	});
@@ -374,7 +374,7 @@ void RunGUI(bool show)
 
 	list1.auto_draw(false);
 	for(auto &monwin : monwins) list1.at(0).push_back(monwin.second.pname);
-	list1.column_at(0).width(list1.size().width - (21*list1.at(0).size() < list1.size().height-20 ? 4 : 20));
+	list1.column_at(0).width(list1.size().width - 10);
 	list1.sort_col();
 	list1.auto_draw(true);
 	
@@ -500,7 +500,7 @@ void enum_timer_fn(listbox &list1, listbox &list2, label &info)
 			item.fgcolor(color_rgb(0x883311));
 		else item.fgcolor(list2.fgcolor());
 	}
-	list2.column_at(0).width(list2.size().width - (21*list2.at(0).size() < list2.size().height-20 ? 4 : 20));
+	list2.column_at(0).width(list2.size().width - 10);
 	list2.auto_draw(true);
 	if(IsWindowVisible(hwnd) && !IsIconic(hwnd))
 	{
