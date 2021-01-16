@@ -9,29 +9,6 @@
 using namespace std;
 
 
-class filepath
-{
-private:
-	wstring pathw_, dirw_, namew_, extw_, fullnamew_;
-	string path_, dir_, name_, ext_, fullname_;
-
-public:
-	filepath() {}
-	filepath(const string&);
-	filepath(const wstring&);
-	operator string() { return path_; }
-	operator wstring() { return pathw_; }
-	string dir() { return dir_; }
-	wstring dirw() { return dirw_; }
-	string name() { return name_; }
-	wstring namew() { return namew_; }
-	string ext() { return ext_; }
-	wstring extw() { return extw_; }
-	string fullname() { return fullname_; }
-	wstring fullnamew() { return fullnamew_; }
-};
-
-
 // UTF8 conversion of wide character string (std::wstring) to multibyte string (std::string)
 static void wctomb(const wstring &wcstr, string &mbstr, unsigned cp = CP_UTF8)
 {
@@ -50,16 +27,14 @@ static void mbtowc(const string &mbstr, wstring &wcstr, unsigned cp = CP_UTF8)
 	MultiByteToWideChar(cp, 0, mbstr.data(), -1, &wcstr.front(), len-1);
 }
 
-static string strlower(string s) { for(auto &c : s) c = tolower(c); return move(s); }
-static wstring strlower(wstring s) { for(auto &c : s) c = tolower(c); return move(s); }
+static string strlower(string s) { for(auto &c : s) c = tolower(c); return s; }
+static wstring strlower(wstring s) { for(auto &c : s) c = tolower(c); return s; }
 
 LONGLONG GetFileSize(LPCWSTR);
-string GetLastErrorStr();
-wstring GetLastErrorStrW();
 string to_hex_string(HWND);
 // NO trailing backslash
 wstring GetAppFolder();
-filepath AppPath();
+std::filesystem::path AppPath();
 wstring MakeTempFolder(wstring);
 template<typename T> bool FileExist(const T &fname) { return filesystem::exists(fname); }
 

@@ -20,11 +20,11 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 	LocalFree(argv);
 
 	self_path = AppPath();
-	inifile = self_path.dirw() + L"\\bwh.ini";
+	inifile = (self_path / L"bwh.ini").wstring();
 
 	if(am_i_already_running())
 	{
-		MessageBoxA(NULL, "An instance of the program is already running! Press OK to exit.", TITLE, MB_ICONEXCLAMATION);
+		MessageBoxW(NULL, L"An instance of the program is already running! Press OK to exit.", TITLEW, MB_ICONEXCLAMATION);
 		return 0;
 	}
 
@@ -42,13 +42,13 @@ void RunGUI(bool show)
 	form fm(API::make_center(645, 800), appear::decorate<appear::minimize>());
 	fm.bgcolor(colors::white);
 	fm.caption(TITLE);
-	fm.icon(paint::image(wstring(self_path)));
+	fm.icon(paint::image(self_path.wstring()));
 
 	hwnd = (HWND)fm.native_handle();
 
 	notifier ntfr(fm);
 	ntfr.text(TITLE);
-	ntfr.icon(self_path);
+	ntfr.icon(self_path.string());
 	ntfr.events().dbl_click([&fm] { if(fm.visible()) fm.hide(); else { fm.show(); SetForegroundWindow(hwnd); } });
 	ntfr.events().mouse_up([&fm](const arg_mouse &e)
 	{
@@ -282,7 +282,7 @@ void RunGUI(bool show)
 						if(monwins.at(seltext).style) caption += " The border has been removed, and the window "
 							"has been resized to fill the screen.";
 					}
-					string modpath = monwins.at(seltext).modpath;
+					string modpath = monwins.at(seltext).modpath.string();
 					if(modpath.size())
 					{
 						if(caption.find("has been removed") == string::npos) caption += "\n";
@@ -535,23 +535,23 @@ void enum_windows()
 			{
 				enumwin win;
 				win.procid = procid;
-				filepath procpath(procname);
-				win.pname = procpath.fullname();
+				std::filesystem::path procpath(procname);
+				win.pname = procpath.filename().string();
 				win.hwnd = hwnd;
 				win.monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY);
 				win.captionw = caption;
 				if(!(style & (WS_CAPTION|WS_THICKFRAME))) win.borderless = true;
-				string key = strlower(procpath.fullname());
+				string key = strlower(procpath.filename().string());
 				windows[key] = win;
 				if(icons.find(key) == icons.end())
 					icons[key] = paint::image(procname);
 				try
 				{
-					if(string(monwins.at(key).modpath).empty())
+					if(monwins.at(key).modpath.empty())
 					{
 						monwins[key].modpath = procpath;
 						for(auto &item : list1->at(0))
-							if(item.text(0) == procpath.fullname())
+							if(item.text(0) == procpath.filename().string())
 							{
 								item.icon(icons[key]);
 								break;
@@ -578,7 +578,7 @@ bool am_i_already_running()
 		HANDLE hproc = OpenProcess(PROCESS_QUERY_INFORMATION|PROCESS_VM_READ, 0, procid);
 		wstring procname(2048, '\0');
 		procname.resize(GetModuleFileNameEx(hproc, NULL, &procname.front(), procname.size()));
-		if(procname.substr(procname.rfind('\\')+1) == self_path.fullnamew())
+		if(procname.substr(procname.rfind('\\')+1) == self_path.filename().wstring())
 		{
 			wstring caption(2048, '\0');
 			GetWindowTextW(hwnd, &caption.front(), caption.size());
@@ -634,14 +634,14 @@ void LoadSettings()
 			style = ini.ReadInt(to_string(n++), "s", 0);
 			if(pname.find('\\') != string::npos)
 			{
-				filepath p(pname);
-				string key = strlower(p.fullname());
+				std::filesystem::path p(pname);
+				string key = strlower(p.filename().string());
 				if(FileExist(pname))
 				{
 					icons[key] = paint::image(pname);
-					monwins[key] = {style, false, p.fullname(), p};
+					monwins[key] = {style, false, p.filename().string(), p};
 				}
-				else monwins[key] = {style, false, p.fullname()};
+				else monwins[key] = {style, false, p.filename().string()};
 			}
 			else monwins[strlower(pname)] = {style, false, pname};
 		}
@@ -658,7 +658,7 @@ void SaveSettings()
 	int idx(0);
 	for(auto &monwin : monwins)
 	{
-		string s = to_string(idx++), modpath = monwin.second.modpath;
+		string s = to_string(idx++), modpath = monwin.second.modpath.string();
 		ini.WriteString(s, "p", modpath.empty() ? monwin.second.pname : modpath);
 		ini.WriteInt(s, "s", monwin.second.style);
 	}
