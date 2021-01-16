@@ -12,13 +12,11 @@ using namespace std;
 static string strlower(string s) { for(auto &c : s) c = tolower(c); return s; }
 static wstring strlower(wstring s) { for(auto &c : s) c = tolower(c); return s; }
 
-LONGLONG GetFileSize(LPCWSTR);
 string to_hex_string(HWND);
 // NO trailing backslash
 wstring GetAppFolder();
 std::filesystem::path AppPath();
 wstring MakeTempFolder(wstring);
-template<typename T> bool FileExist(const T &fname) { return filesystem::exists(fname); }
 
 
 class chronometer

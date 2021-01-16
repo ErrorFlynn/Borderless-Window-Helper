@@ -18,8 +18,8 @@ IniFile::IniFile(const wstring &fname) : fname(fname), sort_sections(false), sor
 
 void IniFile::LoadData()
 {
-	bool b = FileExist(safe_fname);
-	if(!b && !FileExist(fname)) return;
+	bool b = std::filesystem::exists(safe_fname);
+	if(!b && !std::filesystem::exists(fname)) return;
 
 	ifstream file(b ? safe_fname.c_str() : fname.c_str(), ios::ate);
 	if(!file.is_open()) return;
@@ -67,7 +67,7 @@ void IniFile::LoadData()
 void IniFile::SaveData()
 {
 	if(sections.empty() || sections[0].entries.empty()) return;
-	bool b = FileExist(safe_fname);
+	bool b = std::filesystem::exists(safe_fname);
 	ofstream file(b ? safe_fname.c_str() : fname.c_str(), ios::trunc);
 	if(!file.is_open())
 	{

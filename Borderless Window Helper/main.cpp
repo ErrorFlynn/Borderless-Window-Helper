@@ -61,7 +61,7 @@ void RunGUI(bool show)
 			GetCursorPos(&pt);
 			int pos(0), ID(2000);
 			InsertMenuA(hpop, pos++, MF_BYPOSITION | MF_STRING, ID, fm.visible() ? "Hide interface" : "Show interface");
-			InsertMenuA(hpop, pos++, MF_BYPOSITION | MF_STRING | (FileExist(stlink) ? MF_CHECKED : 0), ID+1, "Start with Windows");
+			InsertMenuA(hpop, pos++, MF_BYPOSITION | MF_STRING | (std::filesystem::exists(stlink) ? MF_CHECKED : 0), ID+1, "Start with Windows");
 			InsertMenuA(hpop, pos++, MF_BYPOSITION | MF_STRING, ID+2, "Exit");
 			SetForegroundWindow(hwnd);
 			WORD cmd = TrackPopupMenu(hpop, TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD | TPM_NONOTIFY, pt.x, pt.y, 0, hwnd, NULL);
@@ -73,7 +73,7 @@ void RunGUI(bool show)
 			}
 			else if(cmd == ID+1)
 			{
-				if(FileExist(stlink)) DeleteFileW(stlink.data());
+				if(std::filesystem::exists(stlink)) DeleteFileW(stlink.data());
 				else
 				{
 					HRESULT hres;
@@ -378,7 +378,7 @@ void RunGUI(bool show)
 			for(auto &monwin : monwins)
 			{
 				wstring modpath = monwin.second.modpath;
-				if(modpath.size() && !FileExist(modpath))
+				if(modpath.size() && !std::filesystem::exists(modpath))
 				{
 					monwin.second.modpath = ""s;
 					for(auto &item : list1.at(0))
@@ -636,7 +636,7 @@ void LoadSettings()
 			{
 				std::filesystem::path p(pname);
 				string key = strlower(p.filename().string());
-				if(FileExist(pname))
+				if(std::filesystem::exists(pname))
 				{
 					icons[key] = paint::image(pname);
 					monwins[key] = {style, false, p.filename().string(), p};
