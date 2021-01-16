@@ -412,10 +412,9 @@ void mon_timer_fn()
 {
 	for(auto &monwin : monwins)
 	{
-		static enumwin win;
 		auto it = windows.find(strlower(monwin.second.pname));
 		if (it == windows.end()) continue; // process not running
-		win = it->second;
+		enumwin& win = it->second;
 		if(!win.borderless) // remove borders
 		{
 			MONITORINFO mi = {sizeof(mi)};
