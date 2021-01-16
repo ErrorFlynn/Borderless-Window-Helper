@@ -571,29 +571,8 @@ void enum_windows()
 
 bool am_i_already_running()
 {
-	WNDENUMPROC enumfn = [](HWND hwnd, LPARAM lparam) -> BOOL
-	{
-		DWORD procid(0);
-		GetWindowThreadProcessId(hwnd, &procid);
-		HANDLE hproc = OpenProcess(PROCESS_QUERY_INFORMATION|PROCESS_VM_READ, 0, procid);
-		wstring procname(2048, '\0');
-		procname.resize(GetModuleFileNameExW(hproc, NULL, &procname.front(), procname.size()));
-		if(procname.substr(procname.rfind('\\')+1) == self_path.filename().wstring())
-		{
-			wstring caption(2048, '\0');
-			GetWindowTextW(hwnd, &caption.front(), caption.size());
-			caption.resize(caption.find(L'\0'));
-			if(caption == TITLEW)
-			{
-				*(bool*)lparam = true;
-				return FALSE;
-			}
-		}
-		return TRUE;
-	};
-	bool self_running(false);
-	EnumWindows(enumfn, (LPARAM)&self_running);
-	return self_running;
+	CreateMutexW(NULL, FALSE, TITLEW);
+	return GetLastError() == ERROR_ALREADY_EXISTS;
 }
 
 
