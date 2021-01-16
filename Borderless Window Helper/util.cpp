@@ -3,20 +3,24 @@
 
 wstring GetAppFolder()
 {
-	wstring progdirw;
-	progdirw.assign(4096, '\0');
-	GetModuleFileNameW(NULL, &progdirw.front(), 4096);
-	return progdirw.substr(0, progdirw.rfind(L'\\'));
+	auto appPath = AppPath();
+	return appPath.parent_path().wstring();
 }
 
 
 std::filesystem::path AppPath()
 {
-	wstring progdirw;
-	progdirw.resize(4096);
-	DWORD len = GetModuleFileNameW(NULL, &progdirw.front(), 4096);
-	progdirw.resize(len);
-	return progdirw;
+  std::wstring filename;
+  filename.resize(MAX_PATH);
+  boolean truncated;
+  do {
+    DWORD nRet = ::GetModuleFileNameW(NULL, &filename[0], filename.size());
+    if (nRet == 0)
+      throw std::system_error(GetLastError(), std::system_category());
+    truncated = nRet == filename.size();
+    filename.resize(truncated ? filename.size() * 2 : nRet);
+  } while (truncated);
+  return filename;
 }
 
 

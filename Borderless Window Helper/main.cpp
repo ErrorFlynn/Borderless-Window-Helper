@@ -17,7 +17,7 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 	LocalFree(argv);
 
 	self_path = AppPath();
-	inifile = (self_path / L"bwh.ini").wstring();
+	inifile = (self_path.parent_path() / L"bwh.ini").wstring();
 
 	if(am_i_already_running())
 	{
