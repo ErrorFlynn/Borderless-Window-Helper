@@ -1,6 +1,6 @@
 #include "inifile.h"
 
-wstring IniFile::safe_fname;
+wstring IniFile::save_fname;
 
 IniFile::IniFile(const wstring &fname) : fname(fname), sort_sections(false), sort_entries(false), nospaces(false)
 {
@@ -9,8 +9,8 @@ IniFile::IniFile(const wstring &fname) : fname(fname), sort_sections(false), sor
 	if(first)
 	{
 		first = false;
-		wstring appdata(ini_file::GetSysFolderLocation(CSIDL_APPDATA));
-		if(appdata.size()) safe_fname = appdata + fname.substr(fname.rfind('\\'));
+		wstring appdata = GetSysFolderLocation(CSIDL_APPDATA);
+		if(!appdata.empty()) save_fname = appdata + fname.substr(fname.rfind('\\'));
 	}
 
 	LoadData();
@@ -18,10 +18,10 @@ IniFile::IniFile(const wstring &fname) : fname(fname), sort_sections(false), sor
 
 void IniFile::LoadData()
 {
-	bool b = std::filesystem::exists(safe_fname);
+	bool b = std::filesystem::exists(save_fname);
 	if(!b && !std::filesystem::exists(fname)) return;
 
-	ifstream file(b ? safe_fname.c_str() : fname.c_str(), ios::ate);
+	ifstream file(b ? save_fname.c_str() : fname.c_str(), ios::ate);
 	if(!file.is_open()) return;
 	size_t size = (size_t)file.tellg();
 	if(!size) return;
@@ -67,11 +67,11 @@ void IniFile::LoadData()
 void IniFile::SaveData()
 {
 	if(sections.empty() || sections[0].entries.empty()) return;
-	bool b = std::filesystem::exists(safe_fname);
-	ofstream file(b ? safe_fname.c_str() : fname.c_str(), ios::trunc);
+	bool b = std::filesystem::exists(save_fname);
+	ofstream file(b ? save_fname.c_str() : fname.c_str(), ios::trunc);
 	if(!file.is_open())
 	{
-		file.open(safe_fname.c_str(), ios::trunc);
+		file.open(save_fname.c_str(), ios::trunc);
 		if(!file.is_open()) return;
 	}
 	if(sort_sections) sort(sections.begin(), sections.end(), [](section a, section b) {

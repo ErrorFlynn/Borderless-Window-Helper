@@ -17,7 +17,10 @@ string to_hex_string(HWND);
 wstring GetAppFolder();
 std::filesystem::path AppPath();
 wstring MakeTempFolder(wstring);
-
+HRESULT createShortcut(const std::wstring& linkFileName, const std::filesystem::path& targetPath, const std::wstring& arguments,
+const std::wstring& description);
+std::filesystem::path GetModuleFileNameExPath(HANDLE hProcess);
+wstring GetSysFolderLocation(int csidl);
 
 class chronometer
 {

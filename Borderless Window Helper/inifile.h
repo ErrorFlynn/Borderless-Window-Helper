@@ -11,7 +11,7 @@ using namespace std;
 class IniFile
 {
 	wstring fname;
-	static wstring safe_fname;
+	static wstring save_fname;
 	bool sort_sections, sort_entries, nospaces;
 
 	void LoadData();
@@ -64,23 +64,3 @@ public:
 	void WriteString(const string &section_name, const string &entry_name, const string &value);
 };
 
-namespace ini_file
-{
-	static wstring GetSysFolderLocation(int csidl)
-	{
-		LPITEMIDLIST pidl;
-		if(SHGetFolderLocation(NULL, csidl, NULL, 0, &pidl) == S_OK)
-		{
-			WCHAR path[_MAX_PATH];
-			BOOL ret = SHGetPathFromIDListW(pidl, path);
-			LPMALLOC pMalloc;
-			if(SHGetMalloc(&pMalloc) == S_OK)
-			{
-				pMalloc->Free(pidl);
-				pMalloc->Release();
-			}
-			if(ret) return path;
-		}
-		return L"";
-	}
-}

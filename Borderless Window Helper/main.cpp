@@ -51,7 +51,7 @@ void RunGUI(bool show)
 	{
 		if(e.right_button)
 		{
-			static wstring stlink = ini_file::GetSysFolderLocation(CSIDL_APPDATA) +
+			static wstring stlink = GetSysFolderLocation(CSIDL_APPDATA) +
 				L"\\microsoft\\windows\\start menu\\programs\\startup\\Borderless Window Helper.lnk";
 			HMENU hpop = CreatePopupMenu();
 			POINT pt;
@@ -73,24 +73,8 @@ void RunGUI(bool show)
 				if(std::filesystem::exists(stlink)) DeleteFileW(stlink.c_str());
 				else
 				{
-					HRESULT hres;
-					IShellLink *psl;
-					hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (LPVOID*)&psl);
-					if(SUCCEEDED(hres))
-					{
-						IPersistFile *ppf;
-						psl->SetPath(self_path.wstring().c_str());
-						psl->SetArguments(L"tray");
-						psl->SetDescription(L"This shortcut has been created by Borderless Window Helper, because you "
-							"selected \"Start with Windows\" from the program's tray menu.");
-						hres = psl->QueryInterface(IID_IPersistFile, (LPVOID*)&ppf);
-						if(SUCCEEDED(hres))
-						{
-							hres = ppf->Save(stlink.c_str(), TRUE);
-							ppf->Release();
-						}
-						psl->Release();
-					}
+					createShortcut(stlink, self_path, L"tray", L"This shortcut has been created by Borderless Window Helper, because you "
+			"selected \"Start with Windows\" from the program's tray menu.");
 				}
 			}
 			else if(cmd == ID+2) API::exit();
@@ -533,13 +517,11 @@ void enum_windows()
 			DWORD procid(0);
 			GetWindowThreadProcessId(hwnd, &procid);
 			HANDLE hproc = OpenProcess(PROCESS_QUERY_INFORMATION|PROCESS_VM_READ, 0, procid);
-			wstring procname(2048, '\0');
-			procname.resize(GetModuleFileNameExW(hproc, NULL, &procname.front(), procname.size()));
-			if(procname != self_path.wstring())
+			auto procpath = GetModuleFileNameExPath(hproc);
+			if(procpath != self_path)
 			{
 				enumwin win;
 				win.procid = procid;
-				std::filesystem::path procpath(procname);
 				win.pname = procpath.filename().string();
 				win.hwnd = hwnd;
 				win.monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY);
@@ -548,7 +530,7 @@ void enum_windows()
 				string key = strlower(procpath.filename().string());
 				windows[key] = win;
 				if(icons.find(key) == icons.end())
-					icons[key] = paint::image(procname);
+					icons[key] = paint::image(procpath.wstring());
 				try
 				{
 					if(monwins.at(key).modpath.empty())
@@ -607,7 +589,7 @@ void LoadSettings()
 		}
 	}
 	while(pname.size());
-	iconapp.open(ini_file::GetSysFolderLocation(CSIDL_SYSTEM) + L"\\svchost.exe");
+	iconapp.open(GetSysFolderLocation(CSIDL_SYSTEM) + L"\\svchost.exe");
 }
 
 
