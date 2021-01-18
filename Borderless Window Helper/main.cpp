@@ -71,7 +71,7 @@ void RunGUI(bool show)
 			HMENU hpop = CreatePopupMenu();
 			POINT pt;
 			GetCursorPos(&pt);
-			int pos(0), ID(2000);
+			int pos = 0, ID = 2000;
 			InsertMenuW(hpop, pos++, MF_BYPOSITION | MF_STRING, ID, fm.visible() ? L"Hide interface" : L"Show interface");
 			InsertMenuW(hpop, pos++, MF_BYPOSITION | MF_STRING | (std::filesystem::exists(stlink) ? MF_CHECKED : 0), ID+1, L"Start with Windows");
 			InsertMenuW(hpop, pos++, MF_BYPOSITION | MF_STRING, ID+2, L"Exit");
@@ -516,7 +516,7 @@ void LoadSettings()
 {
 	IniFile ini(inifile);
 	monwins.clear();
-	int n(0), style(0);
+	int n = 0, style = 0;
 	string pname;
 	do
 	{
@@ -547,7 +547,7 @@ void SaveSettings()
 {
 	std::filesystem::remove(inifile);
 	IniFile ini(inifile);
-	int idx(0);
+	int idx = 0;
 	for(auto &monwin : monwins)
 	{
 		string s = to_string(idx++), modpath = monwin.second.modpath.string();
