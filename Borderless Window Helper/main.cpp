@@ -296,24 +296,6 @@ void RunGUI(bool show)
 		}
 	});
 
-	list1.events().mouse_down([&list1, &list2, &lbinfo](const arg_mouse &arg)
-	{
-		if(!arg.shift && !arg.ctrl)
-		{
-			auto lb = list1.at(0);
-			auto hovered = list1.cast(point(arg.pos.x, arg.pos.y));
-			if(!hovered.empty())
-			{
-				hovered.item = lb.index_cast(hovered.item, true);
-				for(unsigned n(0); n<lb.size(); n++)
-					if(n == hovered.item) lb.at(n).select(true);
-					else lb.at(n).select(false);
-			}
-		}
-		auto selection = list1.selected();
-		if(selection.empty()) { enum_timer_fn(list1, list2, lbinfo); last.clear(); }
-	});
-
 	list1.events().key_release([&list1](const arg_keyboard &arg)
 	{
 		if(arg.key == VK_DELETE)
