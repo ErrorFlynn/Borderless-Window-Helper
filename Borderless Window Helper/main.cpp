@@ -298,11 +298,11 @@ void RunGUI(bool show)
 
 	list1.events().key_release([&list1](const arg_keyboard &arg)
 	{
-		if(arg.key == VK_DELETE)
+		if(arg.key == 0x7f) // DEL ASCII code
 		{
 			auto lb = list1.at(0);
 			auto selection = list1.selected();
-			int deleted(0);
+			int deleted = 0;
 			for(auto &selitem : selection)
 			{
 				string seltext = strlower(lb.at(selitem.item-deleted).text(0));
@@ -352,45 +352,7 @@ void RunGUI(bool show)
 	list1.auto_draw(false);
 	for(auto &monwin : monwins) list1.at(0).push_back(monwin.second.pname);
 	list1.column_at(0).fit_content();
-	list1.auto_draw(true);
-	
-	sc.make_before(WM_ACTIVATE, [&list1, &list2, &lbinfo](UINT, WPARAM wparam, LPARAM, LRESULT*)
-	{
-		if(LOWORD(wparam) == WA_ACTIVE || LOWORD(wparam) == WA_CLICKACTIVE)
-		{
-			for(auto &monwin : monwins)
-			{
-				std::filesystem::path& modpath = monwin.second.modpath;
-				if(!modpath.empty() && !std::filesystem::exists(modpath))
-				{
-					modpath = "";
-					for(auto &item : list1.at(0))
-					{
-						if(monwin.second.pname == item.text(0))
-						{
-							item.icon(iconapp);
-							break;
-						}
-					}
-				}
-			}
-			last.clear();
-			enum_timer_fn(list1, list2, lbinfo);
-			auto selection = list1.selected();
-			if(!selection.empty())
-			{
-				list1.at(0).at(selection[0].item).select(false);
-				list1.at(0).at(selection[0].item).select(true);
-			}
-			selection = list2.selected();
-			if(!selection.empty())
-			{
-				list2.at(0).at(selection[0].item).select(false);
-				list2.at(0).at(selection[0].item).select(true);
-			}
-		}
-		return true;
-	});
+	list1.auto_draw(true);	
 
 	if(show)
 	{
