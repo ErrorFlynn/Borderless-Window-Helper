@@ -10,14 +10,10 @@ string last;
 std::filesystem::path inifile;
 std::filesystem::path self_path;
 HWND hwnd;
-paint::image iconapp;
 
 map<string, monwin> monwins; // key is lowercase process name
 
 map<string, enumwin> windows; // key is lowercase process name
-
-unordered_map<string, paint::image> icons;
-
 
 int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 {
@@ -429,7 +425,11 @@ void enum_timer_fn(listbox &list1, listbox &list2, label &info)
 				found = true;
 				break;
 			}
-		if(!found) lb2.push_back(win.second.pname);
+		if(!found)
+		{
+			lb2.push_back(win.second.pname);
+			lb2.back().icon(paint::image(win.second.modpath));
+		}
 	}
 
 	for(auto &item : list2.at(0))
@@ -487,24 +487,8 @@ void enum_windows(const listbox& list1)
 				win.captionw = caption;
 				if(!(style & (WS_CAPTION|WS_THICKFRAME))) win.borderless = true;
 				string key = strlower(procpath.filename().string());
+				win.modpath = procpath;
 				windows[key] = win;
-				if(icons.find(key) == icons.end())
-					icons[key] = paint::image(procpath);
-				auto it = monwins.find(key);
-				if (it != monwins.end())
-				{
-					if(it->second.modpath.empty())
-					{
-						it->second.modpath = procpath;
-						listbox* list1 = (listbox*)lparam;
-						for(auto &item : list1->at(0))
-							if(item.text(0) == procpath.filename())
-							{
-								item.icon(icons[key]);
-								break;
-							}
-					}
-				}
 			}
 		}
 		return TRUE;
@@ -533,7 +517,6 @@ void LoadSettings()
 				string key = strlower(p.filename().string());
 				if(std::filesystem::exists(pname))
 				{
-					icons[key] = paint::image(pname);
 					monwins[key] = {style, false, p.filename().string(), p};
 				}
 				else monwins[key] = {style, false, p.filename().string()};
@@ -542,7 +525,6 @@ void LoadSettings()
 		}
 	}
 	while(pname.size());
-	iconapp.open(GetSysFolderLocation(CSIDL_SYSTEM) / L"svchost.exe");
 }
 
 

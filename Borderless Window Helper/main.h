@@ -32,6 +32,7 @@ struct enumwin
 	HMONITOR monitor = nullptr;
 	wstring captionw;
 	bool borderless = false;
+	std::filesystem::path modpath;
 };
 
 void LoadSettings();
