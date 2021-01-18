@@ -5,8 +5,6 @@
 
 #include "util.h"
 #include <string>
-#include <map>
-#include <unordered_map>
 
 #pragma warning( disable : 4800 4267 4996)
 #pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' \
@@ -18,24 +16,13 @@
 using namespace std;
 using namespace nana;
 
-string last;
-std::filesystem::path inifile;
-std::filesystem::path self_path;
-HWND hwnd;
-paint::image iconapp;
-listbox *list1(nullptr);
-
 struct monwin
 {
 	int style = 0;
 	bool active = false;
 	string pname; // process name as displayed in the list (not lowercased)
 	std::filesystem::path modpath; // module path necessary for getting icon from module
-	monwin() {}
-	monwin(int st, bool a, string pn, const std::filesystem::path& mpath = ""s): style(st), active(a), pname(pn), modpath(mpath) {}
 };
-
-map<string, monwin> monwins; // key is lowercase process name
 
 struct enumwin
 {
@@ -47,14 +34,9 @@ struct enumwin
 	bool borderless = false;
 };
 
-map<string, enumwin> windows; // key is lowercase process name
-
-unordered_map<string, paint::image> icons;
-
-
 void LoadSettings();
 void SaveSettings();
 void RunGUI(bool show);
-void enum_windows();
+void enum_windows(const listbox& list1);
 void enum_timer_fn(listbox &list1, listbox &list2, label &info);
 void mon_timer_fn();

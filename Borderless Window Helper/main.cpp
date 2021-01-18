@@ -3,6 +3,20 @@
 #include "nana_subclassing.h"
 #include <Psapi.h>
 #include <nana/gui/notifier.hpp>
+#include <map>
+#include <unordered_map>
+
+string last;
+std::filesystem::path inifile;
+std::filesystem::path self_path;
+HWND hwnd;
+paint::image iconapp;
+
+map<string, monwin> monwins; // key is lowercase process name
+
+map<string, enumwin> windows; // key is lowercase process name
+
+unordered_map<string, paint::image> icons;
 
 
 int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
@@ -139,7 +153,6 @@ void RunGUI(bool show)
 	list1.scheme().item_selected = color_rgb(0xdcefe8);
 	list1.scheme().item_highlighted = color_rgb(0xeaf0ef);
 	list1.set_sort_compare(0, itemComparator);
-	::list1 = &list1;
 
 	plc.field("monitored") << lb1 << list1;
 
@@ -458,7 +471,7 @@ void mon_timer_fn()
 // updates list2 from current data
 void enum_timer_fn(listbox &list1, listbox &list2, label &info)
 {
-	enum_windows();
+	enum_windows(list1);
 	auto lb1 = list1.at(0), lb2 = list2.at(0);
 	auto selection1 = list1.selected(), selection2 = list2.selected();
 	string seltext1, seltext2;
@@ -520,7 +533,7 @@ void enum_timer_fn(listbox &list1, listbox &list2, label &info)
 }
 
 
-void enum_windows()
+void enum_windows(const listbox& list1)
 {
 	WNDENUMPROC enumfn = [](HWND hwnd, LPARAM lparam) -> BOOL
 	{
@@ -551,6 +564,7 @@ void enum_windows()
 					if(it->second.modpath.empty())
 					{
 						it->second.modpath = procpath;
+						listbox* list1 = (listbox*)lparam;
 						for(auto &item : list1->at(0))
 							if(item.text(0) == procpath.filename())
 							{
@@ -565,7 +579,7 @@ void enum_windows()
 	};
 
 	windows.clear();
-	EnumWindows(enumfn, 0);
+	EnumWindows(enumfn, (LPARAM)&list1);
 }
 
 
