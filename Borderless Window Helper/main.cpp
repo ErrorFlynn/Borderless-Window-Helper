@@ -473,7 +473,10 @@ void enum_windows(const listbox& list1)
 			DWORD procid(0);
 			GetWindowThreadProcessId(hwnd, &procid);
 			HANDLE hproc = OpenProcess(PROCESS_QUERY_INFORMATION|PROCESS_VM_READ, 0, procid);
+			if (hproc == NULL)
+				return TRUE;
 			auto procpath = GetModuleFileNameExPath(hproc);
+			CloseHandle(hproc);
 			if(procpath != self_path)
 			{
 				enumwin win;
