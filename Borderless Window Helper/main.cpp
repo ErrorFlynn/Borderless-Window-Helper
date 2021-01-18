@@ -146,7 +146,6 @@ void RunGUI(bool show)
 	listbox list2(fm);
 	list2.bgcolor(color_rgb(0xfbfbfb));
 	list2.fgcolor(color_rgb(0x111111));
-	list2.sortable(true);
 	list2.show_header(false);
 	list2.enable_single(true, false);
 	list2.append_header("Process Name");
@@ -197,7 +196,6 @@ void RunGUI(bool show)
 			monwins[strlower(seltext)] = {style, false, seltext};
 			list1.auto_draw(false);
 			list1.at(0).push_back(seltext);
-			list1.sort_col();
 			list1.column_at(0).fit_content();
 			list1.auto_draw(true);
 			mon_timer_fn();
@@ -374,7 +372,6 @@ void RunGUI(bool show)
 	list1.auto_draw(false);
 	for(auto &monwin : monwins) list1.at(0).push_back(monwin.second.pname);
 	list1.column_at(0).fit_content();
-	list1.sort_col();
 	list1.auto_draw(true);
 	
 	sc.make_before(WM_ACTIVATE, [&list1, &list2, &lbinfo](UINT, WPARAM wparam, LPARAM, LRESULT*)
@@ -492,8 +489,6 @@ void enum_timer_fn(listbox &list1, listbox &list2, label &info)
 			}
 		if(!found) lb2.push_back(win.second.pname);
 	}
-
-	list2.sort_col();
 
 	for(auto &item : list2.at(0))
 	{
