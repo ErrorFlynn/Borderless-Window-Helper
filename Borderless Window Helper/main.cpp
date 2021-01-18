@@ -217,21 +217,6 @@ void RunGUI(bool show)
 		}
 	});
 
-	list2.events().mouse_down([&list1, &list2, &lbinfo](const arg_mouse &arg)
-	{
-		auto lb = list2.at(0);
-		auto hovered = list2.cast(point(arg.pos.x, arg.pos.y));
-		if(!hovered.empty())
-		{
-			hovered.item = lb.index_cast(hovered.item, true);
-			for(unsigned n(0); n<lb.size(); n++)
-				if(n == hovered.item) lb.at(n).select(true);
-				else lb.at(n).select(false);
-		}
-		auto selection = list2.selected();
-		if(selection.size() != 1) { enum_timer_fn(list1, list2, lbinfo); last.clear(); }
-	});
-
 	list2.events().selected([&list1, &list2, &lbinfo](const arg_listbox &arg)
 	{
 		if(IsWindowVisible(hwnd) && !IsIconic(hwnd))
@@ -393,10 +378,10 @@ void RunGUI(bool show)
 		{
 			for(auto &monwin : monwins)
 			{
-				wstring modpath = monwin.second.modpath;
-				if(modpath.size() && !std::filesystem::exists(modpath))
+				std::filesystem::path& modpath = monwin.second.modpath;
+				if(!modpath.empty() && !std::filesystem::exists(modpath))
 				{
-					monwin.second.modpath = "";
+					modpath = "";
 					for(auto &item : list1.at(0))
 					{
 						if(monwin.second.pname == item.text(0))
