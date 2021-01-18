@@ -198,13 +198,14 @@ void RunGUI(bool show)
 		{
 			string seltext;
 			seltext = lb.at(selection[0].item).text(0);
-			for(auto &monwin : monwins) if(monwin.second.pname == seltext) return;
-			auto &win = windows.at(strlower(seltext));
-			int style(0);
+			for(const auto &monwin : monwins) if(monwin.second.pname == seltext) return;
+			const auto &win = windows.at(strlower(seltext));
+			int style = 0;
 			if(!win.borderless) style = GetWindowLongPtr(win.hwnd, GWL_STYLE);
-			monwins[strlower(seltext)] = {style, false, seltext};
+			monwins[strlower(seltext)] = {style, false, seltext, win.modpath};
 			list1.auto_draw(false);
 			list1.at(0).push_back(seltext);
+			list1.at(0).back().icon(paint::image(win.modpath));
 			list1.column_at(0).fit_content();
 			list1.auto_draw(true);
 			mon_timer_fn();
@@ -346,9 +347,13 @@ void RunGUI(bool show)
 	mon_timer.start();
 
 	list1.auto_draw(false);
-	for(auto &monwin : monwins) list1.at(0).push_back(monwin.second.pname);
+	for(auto &monwin : monwins)
+	{
+		list1.at(0).push_back(monwin.second.pname);
+		list1.at(0).back().icon(paint::image(monwin.second.modpath));
+	}
 	list1.column_at(0).fit_content();
-	list1.auto_draw(true);	
+	list1.auto_draw(true);
 
 	if(show)
 	{
@@ -399,10 +404,7 @@ void enum_timer_fn(listbox &list1, listbox &list2, label &info)
 	enum_windows(list1);
 	auto lb1 = list1.at(0), lb2 = list2.at(0);
 	auto selection1 = list1.selected(), selection2 = list2.selected();
-	string seltext1, seltext2;
-	if(selection2.size() == 1) 
-		seltext2 = lb2.at(selection2[0].item).text(0);
-	else if(selection1.size() == 0 && IsWindowVisible(hwnd) && !IsIconic(hwnd))
+	if(selection2.empty() && selection1.empty() && IsWindowVisible(hwnd) && !IsIconic(hwnd))
 	{
 		info.text_align(align::center, align_v::center);
 		info.typeface(paint::font("Segoe UI", 10, detail::font_style(0, true)));
@@ -434,7 +436,6 @@ void enum_timer_fn(listbox &list1, listbox &list2, label &info)
 
 	for(auto &item : list2.at(0))
 	{
-		if(item.text(0) == seltext2) item.select(true);
 		if(windows.at(strlower(item.text(0))).borderless)
 			item.fgcolor(color_rgb(0x883311));
 		else item.fgcolor(list2.fgcolor());
@@ -535,8 +536,9 @@ void SaveSettings()
 	int idx = 0;
 	for(auto &monwin : monwins)
 	{
-		string s = to_string(idx++), modpath = monwin.second.modpath.string();
-		ini.WriteString(s, "p", modpath.empty() ? monwin.second.pname : modpath);
+		string s = to_string(idx++);
+		const std::filesystem::path& modpath = monwin.second.modpath;
+		ini.WriteString(s, "p", modpath.empty() ? monwin.second.pname : modpath.string());
 		ini.WriteInt(s, "s", monwin.second.style);
 	}
 }
