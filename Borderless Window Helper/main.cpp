@@ -37,7 +37,7 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 
 void RunGUI(bool show)
 {
-	form fm(API::make_center(645, 800), appear::decorate<appear::minimize>());
+	form fm(API::make_center(645, 800), appear::decorate<appear::minimize, appear::sizable>());
 	fm.bgcolor(colors::white);
 	fm.caption(TITLE);
 	fm.icon(paint::image(self_path));
@@ -87,6 +87,10 @@ void RunGUI(bool show)
 	{
 		if(wparam == SC_CLOSE)
 		{
+			API::exit();
+			return false;
+		}
+		if(wparam == SC_MINIMIZE) {
 			fm.hide();
 			return false;
 		}
@@ -109,9 +113,15 @@ void RunGUI(bool show)
 		return true;
 	});
 
+	auto plc = place(fm);
+	plc.div(R"(<form margin=15 vertical arrange=86
+					<<monitored vertical arrange=[15,variable] margin=[0,7,0,0]>
+				     <running   vertical arrange=[15,variable] margin=[0,0,0,8]>>
+					<weight=15>>)");
+
 	const int padding = 15;
 
-	label lb1(fm, rectangle(padding, padding, 250, 15));
+	label lb1(fm);
 	lb1.fgcolor(color_rgb(0x555555));
 	lb1.caption("Processes with windows being monitored:");
 
@@ -120,49 +130,54 @@ void RunGUI(bool show)
 		return reverse ? res > 0 : res < 0;
 	};
 
-	listbox list1(fm, rectangle(lb1.pos().x, lb1.pos().y+lb1.size().height+5, 300, 600));
+	listbox list1(fm);
 	list1.bgcolor(color_rgb(0xfbfbfb));
 	list1.fgcolor(color_rgb(0x909090));
 	list1.show_header(false);
-	list1.append_header("Dummy header");
-	list1.column_at(0).width(list1.size().width-10);
+	list1.append_header("Process Name");
+	list1.column_at(0).fit_content();
 	list1.scheme().item_selected = color_rgb(0xdcefe8);
 	list1.scheme().item_highlighted = color_rgb(0xeaf0ef);
 	list1.set_sort_compare(0, itemComparator);
 	::list1 = &list1;
 
-	listbox list2(fm, rectangle(list1.pos().x+list1.size().width+padding, list1.pos().y, list1.size().width, list1.size().height));
+	plc.field("monitored") << lb1 << list1;
+
+	listbox list2(fm);
 	list2.bgcolor(color_rgb(0xfbfbfb));
 	list2.fgcolor(color_rgb(0x111111));
 	list2.sortable(true);
 	list2.show_header(false);
 	list2.enable_single(true, false);
-	list2.append_header("Dummy header");
-	list2.column_at(0).width(list2.size().width-10);
+	list2.append_header("Process Name");
+	list2.column_at(0).fit_content();
 	list2.scheme().item_selected = color_rgb(0xdcefe8);
 	list2.scheme().item_highlighted = color_rgb(0xeaf0ef);
 	list2.set_sort_compare(0, itemComparator);
 
-	label lb2(fm, rectangle(list2.pos().x, lb1.pos().y, list2.size().width, lb1.size().height));
+	label lb2(fm);
 	lb2.fgcolor(color_rgb(0x555555));
 	lb2.caption("Processes currently running that have visible windows:");
 
-	label frame(fm, rectangle(list1.pos().x+1, list1.pos().y+list1.size().height+padding+1, list1.size().width*2+padding-2, 86));
-	frame.bgcolor(color_rgb(0xfbfbfb));
-	label lbinfo(fm, rectangle(frame.pos().x+11, frame.pos().y+7, frame.size().width-22, frame.size().height-18));
+	plc.field("running") << lb2 << list2;
+
+	label lbinfo(fm);
 	lbinfo.bgcolor(color_rgb(0xfbfbfb));
 	lbinfo.fgcolor(color_rgb(0x555555));
 	lbinfo.format(true);
+
+	plc.field("form") << lbinfo;
+
 	drawing dw(fm);
-	dw.draw([&frame](paint::graphics& graph)
+	dw.draw([&lbinfo](paint::graphics& graph)
 	{
-		graph.round_rectangle(rectangle(frame.pos().x-1, frame.pos().y-1, frame.size().width+2, frame.size().height+2),
+		graph.round_rectangle(rectangle(lbinfo.pos().x-1, lbinfo.pos().y-1, lbinfo.size().width+2, lbinfo.size().height+2),
 			2, 2, color_rgb(0xd5d5d5), false, colors::red);
-		graph.round_rectangle(rectangle(frame.pos().x-2, frame.pos().y-2, frame.size().width+4, frame.size().height+4),
+		graph.round_rectangle(rectangle(lbinfo.pos().x-2, lbinfo.pos().y-2, lbinfo.size().width+4, lbinfo.size().height+4),
 			2, 2, color_rgb(0xefefef), false, colors::red);
-		graph.round_rectangle(rectangle(frame.pos().x-3, frame.pos().y-3, frame.size().width+6, frame.size().height+6),
+		graph.round_rectangle(rectangle(lbinfo.pos().x-3, lbinfo.pos().y-3, lbinfo.size().width+6, lbinfo.size().height+6),
 			2, 2, color_rgb(0xf8f8f8), false, colors::red);
-		graph.round_rectangle(rectangle(frame.pos().x-4, frame.pos().y-4, frame.size().width+8, frame.size().height+8),
+		graph.round_rectangle(rectangle(lbinfo.pos().x-4, lbinfo.pos().y-4, lbinfo.size().width+8, lbinfo.size().height+8),
 			3, 3, color_rgb(0xfcfcfc), false, colors::red);
 	});
 	dw.update();
@@ -183,7 +198,7 @@ void RunGUI(bool show)
 			list1.auto_draw(false);
 			list1.at(0).push_back(seltext);
 			list1.sort_col();
-			list1.column_at(0).width(list1.size().width - 10);
+			list1.column_at(0).fit_content();
 			list1.auto_draw(true);
 			mon_timer_fn();
 			PostMessage(win.hwnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
@@ -320,7 +335,7 @@ void RunGUI(bool show)
 				}
 				monwins.erase(seltext);
 				list1.erase(lb.at(selitem.item-deleted++));
-				list1.column_at(0).width(list1.size().width - 10);
+				list1.column_at(0).fit_content();
 			}
 		}
 	});
@@ -340,12 +355,10 @@ void RunGUI(bool show)
 			}
 			monwins.erase(seltext);
 			list1.erase(lb.at(selection[0].item));
-			list1.column_at(0).width(list1.size().width - 10);
+			list1.column_at(0).fit_content();
 			last.clear();
 		}
 	});
-
-	fm.size({fm.size().width, frame.pos().y+frame.size().height+padding+1});
 
 	timer enum_timer;
 	enum_timer.interval(1000ms);
@@ -360,7 +373,7 @@ void RunGUI(bool show)
 
 	list1.auto_draw(false);
 	for(auto &monwin : monwins) list1.at(0).push_back(monwin.second.pname);
-	list1.column_at(0).width(list1.size().width - 10);
+	list1.column_at(0).fit_content();
 	list1.sort_col();
 	list1.auto_draw(true);
 	
@@ -373,7 +386,7 @@ void RunGUI(bool show)
 				wstring modpath = monwin.second.modpath;
 				if(modpath.size() && !std::filesystem::exists(modpath))
 				{
-					monwin.second.modpath = ""s;
+					monwin.second.modpath = "";
 					for(auto &item : list1.at(0))
 					{
 						if(monwin.second.pname == item.text(0))
@@ -402,7 +415,11 @@ void RunGUI(bool show)
 		return true;
 	});
 
-	if(show) fm.show();
+	if(show)
+	{
+		plc.collocate();
+		fm.show();
+	}
 	nana::exec();
 	ntfr.close();
 }
@@ -485,7 +502,7 @@ void enum_timer_fn(listbox &list1, listbox &list2, label &info)
 			item.fgcolor(color_rgb(0x883311));
 		else item.fgcolor(list2.fgcolor());
 	}
-	list2.column_at(0).width(list2.size().width - 10);
+	list2.column_at(0).fit_content();
 	list2.auto_draw(true);
 	if(IsWindowVisible(hwnd) && !IsIconic(hwnd))
 	{
