@@ -5,7 +5,6 @@
 #include <nana/gui/notifier.hpp>
 #include <map>
 
-string last;
 std::filesystem::path inifile;
 std::filesystem::path self_path;
 HWND hwnd;
@@ -80,14 +79,16 @@ void RunGUI(bool show)
 			}
 			else if(cmd == ID+1)
 			{
-				if(std::filesystem::exists(stlink)) std::filesystem::remove(stlink);
+				if(std::filesystem::exists(stlink))
+					std::filesystem::remove(stlink);
 				else
 				{
 					createShortcut(stlink, self_path, L"tray", L"This shortcut has been created by Borderless Window Helper, because you "
 			"selected \"Start with Windows\" from the program's tray menu.");
 				}
 			}
-			else if(cmd == ID+2) API::exit();
+			else if(cmd == ID+2)
+				API::exit();
 		}
 	});
 
@@ -134,7 +135,7 @@ void RunGUI(bool show)
 	lb1.fgcolor(color_rgb(0x555555));
 	lb1.caption("Processes with windows being monitored:");
 
-	auto itemComparator = []( const std::string& s1, nana::any*, const std::string& s2, nana::any*, bool reverse) {
+	auto itemComparator = [](const std::string& s1, nana::any*, const std::string& s2, nana::any*, bool reverse) {
 		int res = _stricmp(s1.c_str(), s2.c_str());
 		return reverse ? res > 0 : res < 0;
 	};
@@ -189,7 +190,7 @@ void RunGUI(bool show)
 	});
 	dw.update();
 
-	list2.events().dbl_click([&list1, &list2]
+	list2.events().dbl_click([&list1, &list2](const arg_mouse &arg)
 	{
 		auto lb = list2.at(0);
 		auto selection = list2.selected();
@@ -217,38 +218,31 @@ void RunGUI(bool show)
 	{
 		if(IsWindowVisible(hwnd) && !IsIconic(hwnd))
 		{
-			if(list1.selected().size()) last.clear();
-			list1.at(0).select(false);
 			auto lb = list2.at(0);
 			auto selection = list2.selected();
 			if(selection.size() == 1)
 			{
-				string seltext;
-				seltext = strlower(lb.at(selection[0].item).text(0));
-				if(last != seltext)
+				string seltext = strlower(lb.at(selection[0].item).text(0));
+				lbinfo.text_align(align::left);
+				lbinfo.typeface(paint::font("Segoe UI", 10, detail::font_style(0)));
+				auto it = windows.find(seltext);
+				if (it != windows.end())
 				{
-					lbinfo.text_align(align::left);
-					lbinfo.typeface(paint::font("Segoe UI", 10, detail::font_style(0)));
-					auto it = windows.find(seltext);
-					if (it != windows.end())
+					const auto &win = it->second;
+					string caption = R"(<font="Segoe UI Semibold">PID:</> )" + to_string(win.procid);
+					caption += "  |  <font=\"Segoe UI Semibold\">Window handle:</> " + to_hex_string(win.hwnd);
+					caption += "  |  Window ";
+					if(win.borderless)
 					{
-						const auto &win = it->second;
-						string caption = R"(<font="Segoe UI Semibold">PID:</> )" + to_string(win.procid);
-						caption += "  |  <font=\"Segoe UI Semibold\">Window handle:</> " + to_hex_string(win.hwnd);
-						caption += "  |  Window ";
-						if(win.borderless)
-						{
-							if(monwins.find(seltext) != monwins.end() && monwins[seltext].style) 
-								caption += "border has been removed";
-							else caption += "doesn't have a border";
-						}
-						else caption += "has a border (monitoring will remove it)";
-						caption += "\n\n<font=\"Segoe UI Semibold\">Window title:</> " + charset(win.captionw).to_bytes(unicode::utf8);
-						lbinfo.caption(caption);
+						if(monwins.find(seltext) != monwins.end() && monwins[seltext].style != 0) 
+							caption += "border has been removed";
+						else caption += "doesn't have a border";
 					}
-					else { lbinfo.caption("Unexpected error - can't find window!"); }
-					last = seltext;
+					else caption += "has a border (monitoring will remove it)";
+					caption += "\n\n<font=\"Segoe UI Semibold\">Window title:</> " + charset(win.captionw).to_bytes(unicode::utf8);
+					lbinfo.caption(caption);
 				}
+				else { lbinfo.caption("Unexpected error - can't find window!"); }
 			}
 		}
 	});
@@ -257,37 +251,31 @@ void RunGUI(bool show)
 	{
 		if(IsWindowVisible(hwnd) && !IsIconic(hwnd))
 		{
-			if(list2.selected().size()) last.clear();
-			list2.at(0).select(false);
 			auto lb = list1.at(0);
 			auto selection = list1.selected();
 			if(selection.size() == 1)
 			{
 				string seltext = strlower(lb.at(selection[0].item).text(0));
-				if(last != seltext)
+				lbinfo.text_align(align::center, align_v::center);
+				lbinfo.typeface(paint::font("Segoe UI", 10, detail::font_style(0, true)));
+				string caption;
+				if(windows.find(seltext) == windows.end())
+					caption += string("The process is not currently running.") + (monwins.at(seltext).style ?
+						" Its window has a border, which will be removed when it is run." : "");
+				if(caption.empty())
 				{
-					lbinfo.text_align(align::center, align_v::center);
-					lbinfo.typeface(paint::font("Segoe UI", 10, detail::font_style(0, true)));
-					string caption;
-					if(windows.find(seltext) == windows.end())
-						caption += string("The process is not currently running.") + (monwins.at(seltext).style ?
-							" Its window has a border, which will be removed when it is run." : "");
-					if(caption.empty())
-					{
-						caption = "The process is currently running. Its window is being monitored and "
-							"will be minimized while not in focus.";
-						if(monwins.at(seltext).style) caption += " The border has been removed, and the window "
-							"has been resized to fill the screen.";
-					}
-					string modpath = monwins.at(seltext).modpath.string();
-					if(!modpath.empty())
-					{
-						if(caption.find("has been removed") == string::npos) caption += "\n";
-						caption += "\n<color=0x117011>" + modpath + "</>";
-					}
-					lbinfo.caption(caption);
-					last = seltext;
+					caption = "The process is currently running. Its window is being monitored and "
+						"will be minimized while not in focus.";
+					if(monwins.at(seltext).style) caption += " The border has been removed, and the window "
+						"has been resized to fill the screen.";
 				}
+				string modpath = monwins.at(seltext).modpath.string();
+				if(!modpath.empty())
+				{
+					if(caption.find("has been removed") == string::npos) caption += "\n";
+					caption += "\n<color=0x117011>" + modpath + "</>";
+				}
+				lbinfo.caption(caption);
 			}
 		}
 	});
@@ -305,7 +293,8 @@ void RunGUI(bool show)
 				auto it = windows.find(seltext);
 				if (it != windows.end()) {
 					const enumwin& win = it->second;
-					if(monwins.at(seltext).style) SetWindowLongPtr(win.hwnd, GWL_STYLE, monwins.at(seltext).style);
+					if(monwins.at(seltext).style != 0)
+						SetWindowLongPtr(win.hwnd, GWL_STYLE, monwins.at(seltext).style);
 				}
 				monwins.erase(seltext);
 				list1.erase(lb.at(selitem.item-deleted++));
@@ -314,7 +303,7 @@ void RunGUI(bool show)
 		}
 	});
 
-	list1.events().dbl_click([&list1]
+	list1.events().dbl_click([&list1](const arg_mouse &arg)
 	{
 		auto lb = list1.at(0);
 		auto selection = list1.selected();
@@ -325,12 +314,12 @@ void RunGUI(bool show)
 			if (it != windows.end())
 			{
 				const enumwin& win = it->second;
-				if(monwins.at(seltext).style) SetWindowLongPtr(win.hwnd, GWL_STYLE, monwins.at(seltext).style);
+				if(monwins.at(seltext).style != 0)
+					SetWindowLongPtr(win.hwnd, GWL_STYLE, monwins.at(seltext).style);
 			}
 			monwins.erase(seltext);
 			list1.erase(lb.at(selection[0].item));
 			list1.column_at(0).fit_content();
-			last.clear();
 		}
 	});
 
@@ -419,7 +408,7 @@ void enum_timer_fn(listbox &list1, listbox &list2, label &info)
 	}
 	for(auto &win : windows) // add to list2 running processes that are not already in the list
 	{
-		bool found(false);
+		bool found = false;
 		for(auto &item : lb2)
 			if(item.text(0) == win.second.pname)
 			{
@@ -485,7 +474,8 @@ void enum_windows()
 				win.hwnd = hwnd;
 				win.monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY);
 				win.captionw = caption;
-				if(!(style & (WS_CAPTION|WS_THICKFRAME))) win.borderless = true;
+				if(!(style & (WS_CAPTION|WS_THICKFRAME)))
+					win.borderless = true;
 				string key = strlower(procpath.filename().string());
 				win.modpath = procpath;
 				windows[key] = win;
@@ -508,14 +498,14 @@ void LoadSettings()
 	do
 	{
 		pname = ini.ReadString(to_string(n), "p", "");
-		if(pname.size())
+		if(!pname.empty())
 		{
 			style = ini.ReadInt(to_string(n++), "s", 0);
 			if(pname.find('\\') != string::npos)
 			{
 				std::filesystem::path p(pname);
 				string key = strlower(p.filename().string());
-				if(std::filesystem::exists(pname))
+				if(std::filesystem::exists(p))
 				{
 					monwins[key] = {style, false, p.filename().string(), p};
 				}
