@@ -4,7 +4,6 @@
 #include <Psapi.h>
 #include <nana/gui/notifier.hpp>
 #include <map>
-#include <unordered_map>
 
 string last;
 std::filesystem::path inifile;
