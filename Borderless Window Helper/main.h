@@ -38,6 +38,6 @@ struct enumwin
 void LoadSettings();
 void SaveSettings();
 void RunGUI(bool show);
-void enum_windows(const listbox& list1);
+void enum_windows();
 void enum_timer_fn(listbox &list1, listbox &list2, label &info);
 void mon_timer_fn();

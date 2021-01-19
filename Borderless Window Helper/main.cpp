@@ -400,7 +400,7 @@ void mon_timer_fn()
 // updates list2 from current data
 void enum_timer_fn(listbox &list1, listbox &list2, label &info)
 {
-	enum_windows(list1);
+	enum_windows();
 	auto lb1 = list1.at(0), lb2 = list2.at(0);
 	auto selection1 = list1.selected(), selection2 = list2.selected();
 	if(selection2.empty() && selection1.empty() && IsWindowVisible(hwnd) && !IsIconic(hwnd))
@@ -462,7 +462,7 @@ void enum_timer_fn(listbox &list1, listbox &list2, label &info)
 }
 
 
-void enum_windows(const listbox& list1)
+void enum_windows()
 {
 	WNDENUMPROC enumfn = [](HWND hwnd, LPARAM lparam) -> BOOL
 	{
@@ -495,7 +495,7 @@ void enum_windows(const listbox& list1)
 	};
 
 	windows.clear();
-	EnumWindows(enumfn, (LPARAM)&list1);
+	EnumWindows(enumfn, 0);
 }
 
 
