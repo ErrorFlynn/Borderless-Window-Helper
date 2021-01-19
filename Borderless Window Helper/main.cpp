@@ -292,10 +292,9 @@ void RunGUI(bool show)
 		{
 			auto lb = list1.at(0);
 			auto selection = list1.selected();
-			int deleted = 0;
 			for(auto &selitem : selection)
 			{
-				string seltext = lb.at(selitem.item-deleted).text(0);
+				string seltext = lb.at(selitem.item).text(0);
 				auto it = windows.find(seltext);
 				if (it != windows.end()) {
 					const enumwin& win = it->second;
@@ -303,9 +302,9 @@ void RunGUI(bool show)
 						SetWindowLongPtr(win.hwnd, GWL_STYLE, monwins.at(seltext).style);
 				}
 				monwins.erase(seltext);
-				list1.erase(lb.at(selitem.item-deleted++));
-				list1.column_at(0).fit_content();
 			}
+			list1.erase(selection);
+			list1.column_at(0).fit_content();
 		}
 	});
 
