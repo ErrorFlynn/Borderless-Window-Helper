@@ -9,9 +9,6 @@
 using namespace std;
 
 
-string strlower(string s);
-wstring strlower(wstring s);
-
 string to_hex_string(HWND);
 std::filesystem::path AppPath();
 wstring MakeTempFolder(wstring);

@@ -9,9 +9,15 @@ std::filesystem::path inifile;
 std::filesystem::path self_path;
 HWND hwnd;
 
-map<string, monwin> monwins; // key is lowercase process name
+struct processNameComp {
+	bool operator()(const std::string& s1, const std::string& s2) const {
+		return _stricmp(s1.c_str(), s2.c_str()) < 0;
+	}
+};
 
-map<string, enumwin> windows; // key is lowercase process name
+map<string, monwin, processNameComp> monwins; // key is lowercase process name
+
+map<string, enumwin, processNameComp> windows; // key is lowercase process name
 
 int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 {
@@ -199,10 +205,10 @@ void RunGUI(bool show)
 			string seltext;
 			seltext = lb.at(selection[0].item).text(0);
 			for(const auto &monwin : monwins) if(monwin.second.pname == seltext) return;
-			const auto &win = windows.at(strlower(seltext));
+			const auto &win = windows.at(seltext);
 			int style = 0;
 			if(!win.borderless) style = GetWindowLongPtr(win.hwnd, GWL_STYLE);
-			monwins[strlower(seltext)] = {style, false, seltext, win.modpath};
+			monwins[seltext] = {style, false, seltext, win.modpath};
 			list1.auto_draw(false);
 			list1.at(0).push_back(seltext);
 			list1.at(0).back().icon(paint::image(win.modpath));
@@ -222,7 +228,7 @@ void RunGUI(bool show)
 			auto selection = list2.selected();
 			if(selection.size() == 1)
 			{
-				string seltext = strlower(lb.at(selection[0].item).text(0));
+				string seltext = lb.at(selection[0].item).text(0);
 				lbinfo.text_align(align::left);
 				lbinfo.typeface(paint::font("Segoe UI", 10, detail::font_style(0)));
 				auto it = windows.find(seltext);
@@ -234,7 +240,7 @@ void RunGUI(bool show)
 					caption += "  |  Window ";
 					if(win.borderless)
 					{
-						if(monwins.find(seltext) != monwins.end() && monwins[seltext].style != 0) 
+						if(monwins.find(seltext) != monwins.end() && monwins[seltext].style != 0)
 							caption += "border has been removed";
 						else caption += "doesn't have a border";
 					}
@@ -255,7 +261,7 @@ void RunGUI(bool show)
 			auto selection = list1.selected();
 			if(selection.size() == 1)
 			{
-				string seltext = strlower(lb.at(selection[0].item).text(0));
+				string seltext = lb.at(selection[0].item).text(0);
 				lbinfo.text_align(align::center, align_v::center);
 				lbinfo.typeface(paint::font("Segoe UI", 10, detail::font_style(0, true)));
 				string caption;
@@ -289,7 +295,7 @@ void RunGUI(bool show)
 			int deleted = 0;
 			for(auto &selitem : selection)
 			{
-				string seltext = strlower(lb.at(selitem.item-deleted).text(0));
+				string seltext = lb.at(selitem.item-deleted).text(0);
 				auto it = windows.find(seltext);
 				if (it != windows.end()) {
 					const enumwin& win = it->second;
@@ -309,7 +315,7 @@ void RunGUI(bool show)
 		auto selection = list1.selected();
 		if(selection.size() == 1)
 		{
-			string seltext = strlower(lb.at(selection[0].item).text(0));
+			string seltext = lb.at(selection[0].item).text(0);
 			auto it = windows.find(seltext);
 			if (it != windows.end())
 			{
@@ -357,7 +363,7 @@ void mon_timer_fn()
 {
 	for(auto &monwin : monwins)
 	{
-		auto it = windows.find(strlower(monwin.second.pname));
+		auto it = windows.find(monwin.second.pname);
 		if (it == windows.end()) continue; // process not running
 		enumwin& win = it->second;
 		if(!win.borderless) // remove borders
@@ -403,7 +409,7 @@ void enum_timer_fn(listbox &list1, listbox &list2, label &info)
 	list2.auto_draw(false);
 	for(auto &item : lb2) // remove from list2 processes no longer running
 	{
-		if(windows.find(strlower(item.text(0))) == windows.end()) 
+		if(windows.find(item.text(0)) == windows.end())
 			list2.erase(item);
 	}
 	for(auto &win : windows) // add to list2 running processes that are not already in the list
@@ -424,7 +430,7 @@ void enum_timer_fn(listbox &list1, listbox &list2, label &info)
 
 	for(auto &item : list2.at(0))
 	{
-		if(windows.at(strlower(item.text(0))).borderless)
+		if(windows.at(item.text(0)).borderless)
 			item.fgcolor(color_rgb(0x883311));
 		else item.fgcolor(list2.fgcolor());
 	}
@@ -435,9 +441,9 @@ void enum_timer_fn(listbox &list1, listbox &list2, label &info)
 		list1.auto_draw(false);
 		for(auto &item : list1.at(0))
 		{
-			if(windows.find(strlower(item.text(0))) == windows.end())
+			if(windows.find(item.text(0)) == windows.end())
 			{
-				item.fgcolor(list1.fgcolor()); 
+				item.fgcolor(list1.fgcolor());
 				item.bgcolor(list1.bgcolor());
 			}
 			else
@@ -476,7 +482,7 @@ void enum_windows()
 				win.captionw = caption;
 				if(!(style & (WS_CAPTION|WS_THICKFRAME)))
 					win.borderless = true;
-				string key = strlower(procpath.filename().string());
+				string key = procpath.filename().string();
 				win.modpath = procpath;
 				windows[key] = win;
 			}
@@ -504,14 +510,14 @@ void LoadSettings()
 			if(pname.find('\\') != string::npos)
 			{
 				std::filesystem::path p(pname);
-				string key = strlower(p.filename().string());
+				string key = p.filename().string();
 				if(std::filesystem::exists(p))
 				{
 					monwins[key] = {style, false, p.filename().string(), p};
 				}
 				else monwins[key] = {style, false, p.filename().string()};
 			}
-			else monwins[strlower(pname)] = {style, false, pname};
+			else monwins[pname] = {style, false, pname};
 		}
 	}
 	while(pname.size());

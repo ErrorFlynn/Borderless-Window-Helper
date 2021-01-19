@@ -119,6 +119,3 @@ std::wstring GetWindowTextString(HWND hWnd) {
 	caption.resize(nRet);
 	return caption;
 }
-
-string strlower(string s) { for(auto &c : s) c = tolower(c); return s; }
-wstring strlower(wstring s) { for(auto &c : s) c = tolower(c); return s; }
