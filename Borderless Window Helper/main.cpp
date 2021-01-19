@@ -312,7 +312,7 @@ void RunGUI(bool show)
 	{
 		auto lb = list1.at(0);
 		auto selection = list1.selected();
-		if(selection.size() == 1)
+		if (!selection.empty())
 		{
 			string seltext = lb.at(selection[0].item).text(0);
 			auto it = windows.find(seltext);
@@ -467,23 +467,24 @@ void enum_windows()
 			DWORD procid(0);
 			GetWindowThreadProcessId(hwnd, &procid);
 			HANDLE hproc = OpenProcess(PROCESS_QUERY_INFORMATION|PROCESS_VM_READ, 0, procid);
-			if (hproc == NULL)
-				return TRUE;
-			auto procpath = GetModuleFileNameExPath(hproc);
-			CloseHandle(hproc);
-			if(procpath != self_path)
+			if (hproc != NULL)
 			{
-				enumwin win;
-				win.procid = procid;
-				win.pname = procpath.filename().string();
-				win.hwnd = hwnd;
-				win.monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY);
-				win.captionw = caption;
-				if(!(style & (WS_CAPTION|WS_THICKFRAME)))
-					win.borderless = true;
-				string key = procpath.filename().string();
-				win.modpath = procpath;
-				windows[key] = win;
+				auto procpath = GetModuleFileNameExPath(hproc);
+				CloseHandle(hproc);
+				if(procpath != self_path)
+				{
+					enumwin win;
+					win.procid = procid;
+					win.pname = procpath.filename().string();
+					win.hwnd = hwnd;
+					win.monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY);
+					win.captionw = caption;
+					if(!(style & (WS_CAPTION|WS_THICKFRAME)))
+						win.borderless = true;
+					string key = procpath.filename().string();
+					win.modpath = procpath;
+					windows[key] = win;
+				}
 			}
 		}
 		return TRUE;
