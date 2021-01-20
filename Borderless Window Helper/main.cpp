@@ -185,14 +185,11 @@ void RunGUI(bool show)
 	drawing dw(fm);
 	dw.draw([&lbinfo](paint::graphics& graph)
 	{
-		graph.round_rectangle(rectangle(lbinfo.pos().x-1, lbinfo.pos().y-1, lbinfo.size().width+2, lbinfo.size().height+2),
-			2, 2, color_rgb(0xd5d5d5), false, colors::red);
-		graph.round_rectangle(rectangle(lbinfo.pos().x-2, lbinfo.pos().y-2, lbinfo.size().width+4, lbinfo.size().height+4),
-			2, 2, color_rgb(0xefefef), false, colors::red);
-		graph.round_rectangle(rectangle(lbinfo.pos().x-3, lbinfo.pos().y-3, lbinfo.size().width+6, lbinfo.size().height+6),
-			2, 2, color_rgb(0xf8f8f8), false, colors::red);
-		graph.round_rectangle(rectangle(lbinfo.pos().x-4, lbinfo.pos().y-4, lbinfo.size().width+8, lbinfo.size().height+8),
-			3, 3, color_rgb(0xfcfcfc), false, colors::red);
+		auto r = rectangle(lbinfo.pos().x, lbinfo.pos().y, lbinfo.size().width, lbinfo.size().height);
+		graph.round_rectangle(rectangle(r.x-1, r.y-1, r.width+2, r.height+2), 2, 2, color_rgb(0xd5d5d5), false, colors::red);
+		graph.round_rectangle(rectangle(r.x-2, r.y-2, r.width+4, r.height+4), 2, 2, color_rgb(0xefefef), false, colors::red);
+		graph.round_rectangle(rectangle(r.x-3, r.y-3, r.width+6, r.height+6), 2, 2, color_rgb(0xf8f8f8), false, colors::red);
+		graph.round_rectangle(rectangle(r.x-4, r.y-4, r.width+8, r.height+8), 3, 3, color_rgb(0xfcfcfc), false, colors::red);
 	});
 	dw.update();
 
