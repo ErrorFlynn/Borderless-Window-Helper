@@ -15,9 +15,9 @@ struct processNameComp {
 	}
 };
 
-map<string, monwin, processNameComp> monwins; // key is lowercase process name
+map<string, monwin, processNameComp> monwins;
 
-map<string, enumwin, processNameComp> windows; // key is lowercase process name
+map<string, enumwin, processNameComp> windows;
 
 int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 {
@@ -199,7 +199,9 @@ void RunGUI(bool show)
 		{
 			string seltext;
 			seltext = lb.at(selection[0].item).text(0);
-			for(const auto &monwin : monwins) if(monwin.second.pname == seltext) return;
+			for(const auto& [procname, monwin] : monwins)
+				if(monwin.pname == seltext)
+					return;
 			const auto &win = windows.at(seltext);
 			int style = 0;
 			if(!win.borderless) style = GetWindowLongPtr(win.hwnd, GWL_STYLE);
@@ -236,7 +238,8 @@ void RunGUI(bool show)
 					<< "  |  Window ";
 					if(win.borderless)
 					{
-						if(monwins.find(seltext) != monwins.end() && monwins[seltext].style != 0)
+						auto it = monwins.find(seltext);
+						if(it != monwins.end() && it->second.style != 0)
 							caption << "border has been removed";
 						else caption << "doesn't have a border";
 					}
@@ -297,8 +300,9 @@ void RunGUI(bool show)
 				auto it = windows.find(seltext);
 				if (it != windows.end()) {
 					const enumwin& win = it->second;
-					if(monwins.at(seltext).style != 0)
-						SetWindowLongPtr(win.hwnd, GWL_STYLE, monwins.at(seltext).style);
+					const auto& monwin = monwins.at(seltext);
+					if(monwin.style != 0)
+						SetWindowLongPtr(win.hwnd, GWL_STYLE, monwin.style);
 				}
 				monwins.erase(seltext);
 			}
@@ -318,8 +322,9 @@ void RunGUI(bool show)
 			if (it != windows.end())
 			{
 				const enumwin& win = it->second;
-				if(monwins.at(seltext).style != 0)
-					SetWindowLongPtr(win.hwnd, GWL_STYLE, monwins.at(seltext).style);
+				const auto& monwin = monwins.at(seltext);
+				if(monwin.style != 0)
+					SetWindowLongPtr(win.hwnd, GWL_STYLE, monwin.style);
 			}
 			monwins.erase(seltext);
 			list1.erase(selection);
@@ -339,10 +344,10 @@ void RunGUI(bool show)
 	mon_timer.start();
 
 	list1.auto_draw(false);
-	for(auto &monwin : monwins)
+	for(auto& [procname, monwin] : monwins)
 	{
-		list1.at(0).push_back(monwin.second.pname);
-		list1.at(0).back().icon(paint::image(monwin.second.modpath));
+		list1.at(0).push_back(monwin.pname);
+		list1.at(0).back().icon(paint::image(monwin.modpath));
 	}
 	list1.auto_draw(true);
 	list1.column_at(0).fit_content();
@@ -359,34 +364,35 @@ void RunGUI(bool show)
 // monitors windows from list1 and minimizes them, removing borders if any
 void mon_timer_fn()
 {
-	for(auto &monwin : monwins)
+	for(auto& [procname, monwin] : monwins)
 	{
-		auto it = windows.find(monwin.second.pname);
+		auto it = windows.find(monwin.pname);
 		if (it == windows.end()) continue; // process not running
 		enumwin& win = it->second;
 		if(!win.borderless) // remove borders
 		{
 			MONITORINFO mi = {sizeof(mi)};
 			GetMonitorInfoW(win.monitor, &mi);
-			SetWindowLongPtr(win.hwnd, GWL_STYLE, (monwin.second.style & ~(WS_CAPTION|WS_THICKFRAME)) | WS_POPUP);
+			SetWindowLongPtr(win.hwnd, GWL_STYLE, (monwin.style & ~(WS_CAPTION|WS_THICKFRAME)) | WS_POPUP);
 			SetWindowPos(win.hwnd, HWND_TOP, mi.rcMonitor.left, mi.rcMonitor.top, mi.rcMonitor.right - mi.rcMonitor.left,
 				mi.rcMonitor.bottom - mi.rcMonitor.top, SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
 			win.borderless = true;
 		}
 		HWND fghwnd = GetForegroundWindow();
-		if(monwin.second.active)
+		if(monwin.active)
 		{
 			if(fghwnd != win.hwnd && win.monitor == MonitorFromWindow(fghwnd, MONITOR_DEFAULTTOPRIMARY))
 			{
 				wstring fgclassname = GetClassNameString(fghwnd);
 				if(fgclassname != L"TaskSwitcherWnd" && fgclassname != L"Ghost")
 				{
-					monwin.second.active = false;
+					monwin.active = false;
 					PostMessage(win.hwnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
 				}
 			}
 		}
-		else if(fghwnd == win.hwnd) monwin.second.active = true;
+		else if(fghwnd == win.hwnd)
+			monwin.active = true;
 	}
 }
 
@@ -410,19 +416,19 @@ void enum_timer_fn(listbox &list1, listbox &list2, label &info)
 		if(windows.find(item.text(0)) == windows.end())
 			list2.erase(item);
 	}
-	for(auto &win : windows) // add to list2 running processes that are not already in the list
+	for(auto& [procname, win] : windows) // add to list2 running processes that are not already in the list
 	{
 		bool found = false;
 		for(auto &item : lb2)
-			if(item.text(0) == win.second.pname)
+			if(item.text(0) == win.pname)
 			{
 				found = true;
 				break;
 			}
 		if(!found)
 		{
-			lb2.push_back(win.second.pname);
-			lb2.back().icon(paint::image(win.second.modpath));
+			lb2.push_back(win.pname);
+			lb2.back().icon(paint::image(win.modpath));
 		}
 	}
 
@@ -528,12 +534,12 @@ void SaveSettings()
 	std::filesystem::remove(inifile);
 	IniFile ini(inifile);
 	int idx = 0;
-	for(auto &monwin : monwins)
+	for(auto& [procname, monwin] : monwins)
 	{
 		string s = to_string(idx++);
-		const std::filesystem::path& modpath = monwin.second.modpath;
-		ini.WriteString(s, "p", modpath.empty() ? monwin.second.pname : modpath.string());
-		ini.WriteInt(s, "s", monwin.second.style);
+		const std::filesystem::path& modpath = monwin.modpath;
+		ini.WriteString(s, "p", modpath.empty() ? monwin.pname : modpath.string());
+		ini.WriteInt(s, "s", monwin.style);
 	}
 }
 
