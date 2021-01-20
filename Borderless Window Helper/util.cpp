@@ -1,6 +1,5 @@
 #include "util.h"
 #include <psapi.h>
-#include <sstream> // to_hex_string()
 #include <shlobj.h>
 
 std::filesystem::path AppPath()
@@ -46,14 +45,6 @@ wstring MakeTempFolder(wstring folder)
 	}
 	else temp_path = tp + L'\\';
 	return temp_path;
-}
-
-
-string to_hex_string(HWND i)
-{
-	stringstream ss;
-	ss << hex << i;
-	return "0x" + ss.str();
 }
 
 

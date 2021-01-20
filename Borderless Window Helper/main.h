@@ -41,3 +41,5 @@ void RunGUI(bool show);
 void enum_windows();
 void enum_timer_fn(listbox &list1, listbox &list2, label &info);
 void mon_timer_fn();
+
+std::ostream& operator<<(std::ostream& os, const std::wstring& s);

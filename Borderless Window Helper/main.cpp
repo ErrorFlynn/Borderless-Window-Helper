@@ -235,18 +235,19 @@ void RunGUI(bool show)
 				if (it != windows.end())
 				{
 					const auto &win = it->second;
-					string caption = R"(<font="Segoe UI Semibold">PID:</> )" + to_string(win.procid);
-					caption += "  |  <font=\"Segoe UI Semibold\">Window handle:</> " + to_hex_string(win.hwnd);
-					caption += "  |  Window ";
+					std::stringstream caption;
+					caption << R"(<font="Segoe UI Semibold">PID:</> )" << win.procid
+					<< "  |  <font=\"Segoe UI Semibold\">Window handle:</> " << std::hex << win.hwnd
+					<< "  |  Window ";
 					if(win.borderless)
 					{
 						if(monwins.find(seltext) != monwins.end() && monwins[seltext].style != 0)
-							caption += "border has been removed";
-						else caption += "doesn't have a border";
+							caption << "border has been removed";
+						else caption << "doesn't have a border";
 					}
-					else caption += "has a border (monitoring will remove it)";
-					caption += "\n\n<font=\"Segoe UI Semibold\">Window title:</> " + charset(win.captionw).to_bytes(unicode::utf8);
-					lbinfo.caption(caption);
+					else caption << "has a border (monitoring will remove it)";
+					caption << "\n\n<font=\"Segoe UI Semibold\">Window title:</> " << win.captionw;
+					lbinfo.caption(caption.str());
 				}
 				else { lbinfo.caption("Unexpected error - can't find window!"); }
 			}
@@ -264,24 +265,27 @@ void RunGUI(bool show)
 				string seltext = lb.at(selection[0].item).text(0);
 				lbinfo.text_align(align::center, align_v::center);
 				lbinfo.typeface(paint::font("Segoe UI", 10, detail::font_style(0, true)));
-				string caption;
+				std::stringstream caption;
+				const auto& monwin = monwins.at(seltext);
 				if(windows.find(seltext) == windows.end())
-					caption += string("The process is not currently running.") + (monwins.at(seltext).style ?
-						" Its window has a border, which will be removed when it is run." : "");
-				if(caption.empty())
+					caption << "The process is not currently running."
+					        << (monwin.style != 0 ? " Its window has a border, which will be removed when it is run." : "");
+				if(caption.str().empty())
 				{
-					caption = "The process is currently running. Its window is being monitored and "
-						"will be minimized while not in focus.";
-					if(monwins.at(seltext).style) caption += " The border has been removed, and the window "
-						"has been resized to fill the screen.";
+					caption << "The process is currently running. Its window is being monitored and "
+						       "will be minimized while not in focus.";
+					if(monwin.style != 0)
+						caption << " The border has been removed, and the window "
+							       "has been resized to fill the screen.";
 				}
-				string modpath = monwins.at(seltext).modpath.string();
+				string modpath = monwin.modpath.string();
 				if(!modpath.empty())
 				{
-					if(caption.find("has been removed") == string::npos) caption += "\n";
-					caption += "\n<color=0x117011>" + modpath + "</>";
+					if(monwin.style != 0) 
+						caption << "\n";
+					caption << "\n<color=0x117011>" << modpath << "</>";
 				}
-				lbinfo.caption(caption);
+				lbinfo.caption(caption.str());
 			}
 		}
 	});
@@ -536,4 +540,10 @@ void SaveSettings()
 		ini.WriteString(s, "p", modpath.empty() ? monwin.second.pname : modpath.string());
 		ini.WriteInt(s, "s", monwin.second.style);
 	}
+}
+
+std::ostream& operator<<(std::ostream& os, const std::wstring& s)
+{
+	os << charset(s).to_bytes(unicode::utf8);
+	return os;
 }

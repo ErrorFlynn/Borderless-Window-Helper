@@ -9,7 +9,6 @@
 using namespace std;
 
 
-string to_hex_string(HWND);
 std::filesystem::path AppPath();
 wstring MakeTempFolder(wstring);
 HRESULT createShortcut(const std::filesystem::path& linkFileName, const std::filesystem::path& targetPath, const std::wstring& arguments,
