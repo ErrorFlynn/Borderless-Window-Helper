@@ -151,7 +151,6 @@ void RunGUI(bool show)
 	list1.fgcolor(color_rgb(0x909090));
 	list1.show_header(false);
 	list1.append_header("Process Name");
-	list1.column_at(0).fit_content();
 	list1.scheme().item_selected = color_rgb(0xdcefe8);
 	list1.scheme().item_highlighted = color_rgb(0xeaf0ef);
 	list1.set_sort_compare(0, itemComparator);
@@ -164,7 +163,6 @@ void RunGUI(bool show)
 	list2.show_header(false);
 	list2.enable_single(true, false);
 	list2.append_header("Process Name");
-	list2.column_at(0).fit_content();
 	list2.scheme().item_selected = color_rgb(0xdcefe8);
 	list2.scheme().item_highlighted = color_rgb(0xeaf0ef);
 	list2.set_sort_compare(0, itemComparator);
@@ -209,8 +207,8 @@ void RunGUI(bool show)
 			list1.auto_draw(false);
 			list1.at(0).push_back(seltext);
 			list1.at(0).back().icon(paint::image(win.modpath));
-			list1.column_at(0).fit_content();
 			list1.auto_draw(true);
+			list1.column_at(0).fit_content();
 			mon_timer_fn();
 			PostMessage(win.hwnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
 			SetForegroundWindow(hwnd);
@@ -324,7 +322,7 @@ void RunGUI(bool show)
 					SetWindowLongPtr(win.hwnd, GWL_STYLE, monwins.at(seltext).style);
 			}
 			monwins.erase(seltext);
-			list1.erase(lb.at(selection[0].item));
+			list1.erase(selection);
 			list1.column_at(0).fit_content();
 		}
 	});
@@ -346,8 +344,8 @@ void RunGUI(bool show)
 		list1.at(0).push_back(monwin.second.pname);
 		list1.at(0).back().icon(paint::image(monwin.second.modpath));
 	}
-	list1.column_at(0).fit_content();
 	list1.auto_draw(true);
+	list1.column_at(0).fit_content();
 
 	if(show)
 	{
@@ -434,8 +432,8 @@ void enum_timer_fn(listbox &list1, listbox &list2, label &info)
 			item.fgcolor(color_rgb(0x883311));
 		else item.fgcolor(list2.fgcolor());
 	}
-	list2.column_at(0).fit_content();
 	list2.auto_draw(true);
+	list2.column_at(0).fit_content();
 	if(IsWindowVisible(hwnd) && !IsIconic(hwnd))
 	{
 		list1.auto_draw(false);
