@@ -3,6 +3,7 @@
 #include "nana_subclassing.h"
 #include <Psapi.h>
 #include <nana/gui/notifier.hpp>
+#include <nana/gui/widgets/group.hpp>
 #include <map>
 
 std::filesystem::path inifile;
@@ -47,7 +48,6 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 	CoUninitialize();
 	return 0;
 }
-
 
 void RunGUI(bool show)
 {
@@ -173,23 +173,17 @@ void RunGUI(bool show)
 
 	plc.field("running") << lb2 << list2;
 
-	label lbinfo(fm);
+	group grp(fm);
+	grp.scheme().background = color_rgb(0xfbfbfb);
+	grp.div("<form margin=5>");
+
+	label lbinfo(grp);
 	lbinfo.bgcolor(color_rgb(0xfbfbfb));
 	lbinfo.fgcolor(color_rgb(0x555555));
 	lbinfo.format(true);
 
-	plc.field("form") << lbinfo;
-
-	drawing dw(fm);
-	dw.draw([&lbinfo](paint::graphics& graph)
-	{
-		auto r = rectangle(lbinfo.pos().x, lbinfo.pos().y, lbinfo.size().width, lbinfo.size().height);
-		graph.round_rectangle(rectangle(r.x-1, r.y-1, r.width+2, r.height+2), 2, 2, color_rgb(0xd5d5d5), false, colors::red);
-		graph.round_rectangle(rectangle(r.x-2, r.y-2, r.width+4, r.height+4), 2, 2, color_rgb(0xefefef), false, colors::red);
-		graph.round_rectangle(rectangle(r.x-3, r.y-3, r.width+6, r.height+6), 2, 2, color_rgb(0xf8f8f8), false, colors::red);
-		graph.round_rectangle(rectangle(r.x-4, r.y-4, r.width+8, r.height+8), 3, 3, color_rgb(0xfcfcfc), false, colors::red);
-	});
-	dw.update();
+	plc.field("form") << grp;
+	grp["form"] << lbinfo;
 
 	list2.events().dbl_click([&list1, &list2](const arg_mouse &arg)
 	{
@@ -244,7 +238,7 @@ void RunGUI(bool show)
 						else caption << "doesn't have a border";
 					}
 					else caption << "has a border (monitoring will remove it)";
-					caption << "\n\n<font=\"Segoe UI Semibold\">Window title:</> " << win.captionw;
+					caption << "\n\n<font=\"Segoe UI Semibold\">Window title:</> " << escape(win.captionw);
 					lbinfo.caption(caption.str());
 				}
 				else { lbinfo.caption("Unexpected error - can't find window!"); }

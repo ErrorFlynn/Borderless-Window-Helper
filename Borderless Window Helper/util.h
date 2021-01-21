@@ -17,6 +17,7 @@ std::filesystem::path GetModuleFileNameExPath(HANDLE hProcess);
 std::filesystem::path GetSysFolderLocation(int csidl);
 std::wstring GetClassNameString(HWND hWnd);
 std::wstring GetWindowTextString(HWND hWnd);
+std::wstring escape(const std::wstring& s);
 
 class chronometer
 {

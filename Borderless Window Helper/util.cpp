@@ -110,3 +110,16 @@ std::wstring GetWindowTextString(HWND hWnd) {
 	caption.resize(nRet);
 	return caption;
 }
+
+std::wstring escape(const std::wstring& s)
+{
+	std::wstringstream wss;
+	for (auto c : s)
+	{
+		if (c == '<' || c == '>')
+			wss << "\\" << c;
+		else
+			wss << c;
+	}
+	return wss.str();
+}
