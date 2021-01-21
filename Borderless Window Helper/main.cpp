@@ -1,10 +1,17 @@
 #include "inifile.h"
 #include "main.h"
 #include "nana_subclassing.h"
-#include <Psapi.h>
-#include <nana/gui/notifier.hpp>
-#include <nana/gui/widgets/group.hpp>
 #include <map>
+#include <nana/gui.hpp>
+#include <nana/gui/notifier.hpp>
+#include <nana/gui/timer.hpp>
+#include <nana/gui/widgets/group.hpp>
+#include <nana/gui/widgets/label.hpp>
+#include <nana/gui/widgets/listbox.hpp>
+#include <Psapi.h>
+
+using namespace std;
+using namespace nana;
 
 std::filesystem::path inifile;
 std::filesystem::path self_path;
