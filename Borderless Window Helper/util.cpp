@@ -2,6 +2,8 @@
 #include <psapi.h>
 #include <shlobj.h>
 
+using namespace std;
+
 std::filesystem::path AppPath()
 {
   std::wstring filename;

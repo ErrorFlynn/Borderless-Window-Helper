@@ -1,17 +1,11 @@
 #include "util.h"
-#include <shlobj.h>
 #include <string>
 #include <vector>
-#include <fstream>
-#include <sstream>
-#include <algorithm>
-
-using namespace std;
 
 class IniFile
 {
-	wstring fname;
-	static wstring save_fname;
+	std::wstring fname;
+	static std::wstring save_fname;
 	bool sort_sections, sort_entries, nospaces;
 
 	void LoadData();
@@ -19,34 +13,34 @@ class IniFile
 
 	class section
 	{
-		string _name;
+		std::string _name;
 
 		class entry
 		{
-			string _name;
-			string _data;
+			std::string _name;
+			std::string _data;
 
 		public:
-			entry(const string &name, const string &data) : _name(name), _data(data) {};
-			const string& name() { return _name; }
-			const string& data() { return _data; }
-			void setdata(const string& d) { _data = d; }
+			entry(const std::string &name, const std::string &data) : _name(name), _data(data) {};
+			const std::string& name() { return _name; }
+			const std::string& data() { return _data; }
+			void setdata(const std::string& d) { _data = d; }
 		};
 		
-		vector<entry> entries;
+		std::vector<entry> entries;
 
 	public:
 		friend class IniFile;
-		section(const string &name) : _name(name) {};
-		const string& name() { return _name; }
-		void add_entry(const string&, const string&);
+		section(const std::string &name) : _name(name) {};
+		const std::string& name() { return _name; }
+		void add_entry(const std::string&, const std::string&);
 	};
 	
-	vector<section> sections;
+	std::vector<section> sections;
 
 public:
 
-	IniFile(const wstring &fname);
+	IniFile(const std::wstring &fname);
 	~IniFile() { SaveData(); }
 
 	void Clear() { sections.clear(); }
@@ -56,11 +50,11 @@ public:
 	void Sort() { SortSections(); SortEntries(); }
 	void NoSpaces() { nospaces = true; }
 	
-	int ReadInt(const string &section_name, const string &entry_name, int default_value);
-	unsigned ReadUInt(const string &section_name, const string &entry_name, unsigned default_value);
-	string ReadString(const string &section_name, const string &entry_name, const string &default_value);
-	void WriteInt(const string &section_name, const string &entry_name, int value);
-	void WriteUInt(const string &section_name, const string &entry_name, unsigned value);
-	void WriteString(const string &section_name, const string &entry_name, const string &value);
+	int ReadInt(const std::string &section_name, const std::string &entry_name, int default_value);
+	unsigned ReadUInt(const std::string &section_name, const std::string &entry_name, unsigned default_value);
+	std::string ReadString(const std::string &section_name, const std::string &entry_name, const std::string &default_value);
+	void WriteInt(const std::string &section_name, const std::string &entry_name, int value);
+	void WriteUInt(const std::string &section_name, const std::string &entry_name, unsigned value);
+	void WriteString(const std::string &section_name, const std::string &entry_name, const std::string &value);
 };
 

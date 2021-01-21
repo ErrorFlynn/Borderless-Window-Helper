@@ -9,6 +9,7 @@
 #include <nana/gui/widgets/label.hpp>
 #include <nana/gui/widgets/listbox.hpp>
 #include <Psapi.h>
+#include <shlobj.h>
 
 using namespace std;
 using namespace nana;

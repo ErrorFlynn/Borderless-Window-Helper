@@ -1,4 +1,9 @@
 #include "inifile.h"
+#include <filesystem>
+#include <fstream>
+#include <shlobj.h>
+
+using namespace std;
 
 wstring IniFile::save_fname;
 
