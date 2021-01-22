@@ -1,12 +1,13 @@
 #include "util.h"
+#include <filesystem>
 #include <string>
 #include <vector>
 
 class IniFile
 {
-	std::wstring fname;
-	static std::wstring save_fname;
-	bool sort_sections, sort_entries, nospaces;
+	std::filesystem::path fname;
+	static std::filesystem::path save_fname;
+	bool sort_sections = false, sort_entries = false, nospaces = false;
 
 	void LoadData();
 	void SaveData();
@@ -40,7 +41,7 @@ class IniFile
 
 public:
 
-	IniFile(const std::wstring &fname);
+	IniFile(const std::filesystem::path &fname);
 	~IniFile() { SaveData(); }
 
 	void Clear() { sections.clear(); }

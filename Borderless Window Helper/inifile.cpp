@@ -1,21 +1,22 @@
 #include "inifile.h"
-#include <filesystem>
 #include <fstream>
 #include <shlobj.h>
 
 using namespace std;
 
-wstring IniFile::save_fname;
+std::filesystem::path IniFile::save_fname;
 
-IniFile::IniFile(const wstring &fname) : fname(fname), sort_sections(false), sort_entries(false), nospaces(false)
+IniFile::IniFile(const std::filesystem::path &fname)
+: fname(fname)
 {
-	static bool first(true);
+	static bool first = true;
 
 	if(first)
 	{
 		first = false;
-		wstring appdata = GetSysFolderLocation(CSIDL_APPDATA);
-		if(!appdata.empty()) save_fname = appdata + fname.substr(fname.rfind('\\'));
+		std::filesystem::path appdata = GetSysFolderLocation(CSIDL_APPDATA);
+		if(!appdata.empty())
+			save_fname = appdata / fname.filename();
 	}
 
 	LoadData();
@@ -24,7 +25,8 @@ IniFile::IniFile(const wstring &fname) : fname(fname), sort_sections(false), sor
 void IniFile::LoadData()
 {
 	bool b = std::filesystem::exists(save_fname);
-	if(!b && !std::filesystem::exists(fname)) return;
+	if(!b && !std::filesystem::exists(fname))
+		return;
 
 	ifstream file(b ? save_fname.c_str() : fname.c_str(), ios::ate);
 	if(!file.is_open()) return;
