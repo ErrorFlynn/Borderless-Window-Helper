@@ -12,7 +12,7 @@ std::filesystem::path AppPath()
   do {
     DWORD nRet = ::GetModuleFileNameW(NULL, &filename[0], filename.size());
     if (nRet == 0)
-      throw std::system_error(GetLastError(), std::system_category());
+      return L"";
     truncated = nRet == filename.size();
     filename.resize(truncated ? filename.size() * 2 : nRet);
   } while (truncated);
@@ -27,28 +27,12 @@ std::filesystem::path GetModuleFileNameExPath(HANDLE hProcess)
   do {
     DWORD nRet = ::GetModuleFileNameExW(hProcess, NULL, &filename[0], filename.size());
     if (nRet == 0)
-      throw std::system_error(GetLastError(), std::system_category());
+      return L"";
     truncated = nRet == filename.size();
     filename.resize(truncated ? filename.size() * 2 : nRet);
   } while (truncated);
   return filename;
 }
-
-wstring MakeTempFolder(wstring folder)
-{
-	wstring temp_path(1234, '\0');
-	GetTempPathW(temp_path.size(), &temp_path.front());
-	temp_path.resize(temp_path.find(L'\0'));
-	wstring tp(temp_path+folder);
-	if(!std::filesystem::exists(tp))
-	{
-		if(CreateDirectoryW(tp.data(), NULL))
-			temp_path = tp + L'\\';
-	}
-	else temp_path = tp + L'\\';
-	return temp_path;
-}
-
 
 HRESULT createShortcut(const std::filesystem::path& linkFileName, const std::filesystem::path& targetPath, const std::wstring& arguments,
 const std::wstring& description) {
@@ -95,7 +79,7 @@ std::wstring GetClassNameString(HWND hWnd) {
 	className.resize(256);
 	int nRet = GetClassNameW(hWnd, &className[0], className.size());
 	if (nRet == 0)
-		throw std::system_error(GetLastError(), std::system_category());
+		return L"";
 	className.resize(nRet);
 	return className;
 }

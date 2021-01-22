@@ -7,7 +7,6 @@
 #pragma warning( disable : 4800 4267 4996)
 
 std::filesystem::path AppPath();
-std::wstring MakeTempFolder(std::wstring);
 HRESULT createShortcut(const std::filesystem::path& linkFileName, const std::filesystem::path& targetPath, const std::wstring& arguments,
 const std::wstring& description);
 std::filesystem::path GetModuleFileNameExPath(HANDLE hProcess);
