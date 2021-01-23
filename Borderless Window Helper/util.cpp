@@ -97,7 +97,7 @@ std::wstring escape(const std::wstring& s)
 	std::wstringstream wss;
 	for (auto c : s)
 	{
-		if (c == '<' || c == '>')
+		if (c == '<' || c == '>' || c == '\\')
 			wss << "\\" << c;
 		else
 			wss << c;
