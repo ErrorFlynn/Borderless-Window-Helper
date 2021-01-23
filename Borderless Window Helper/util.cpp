@@ -63,12 +63,7 @@ std::filesystem::path GetSysFolderLocation(int csidl)
 	{
 		WCHAR path[MAX_PATH];
 		BOOL ret = SHGetPathFromIDListW(pidl, path);
-		LPMALLOC pMalloc;
-		if(SUCCEEDED(SHGetMalloc(&pMalloc)))
-		{
-			pMalloc->Free(pidl);
-			pMalloc->Release();
-		}
+		ILFree(pidl);
 		if(ret) return path;
 	}
 	return L"";
