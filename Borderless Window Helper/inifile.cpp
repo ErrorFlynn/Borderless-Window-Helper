@@ -1,34 +1,22 @@
 #include "inifile.h"
 #include <fstream>
-#include <shlobj.h>
 
 using namespace std;
 
-std::filesystem::path IniFile::save_fname;
+namespace fs = std::filesystem;
 
-IniFile::IniFile(const std::filesystem::path &fname)
+IniFile::IniFile(const fs::path &fname)
 : fname(fname)
 {
-	static bool first = true;
-
-	if(first)
-	{
-		first = false;
-		std::filesystem::path appdata = GetSysFolderLocation(CSIDL_APPDATA);
-		if(!appdata.empty())
-			save_fname = appdata / fname.filename();
-	}
-
 	LoadData();
 }
 
 void IniFile::LoadData()
 {
-	bool b = std::filesystem::exists(save_fname);
-	if(!b && !std::filesystem::exists(fname))
+	if(!fs::exists(fname))
 		return;
 
-	ifstream file(b ? save_fname.c_str() : fname.c_str(), ios::ate);
+	ifstream file(fname, ios::ate);
 	if(!file.is_open()) return;
 	size_t size = (size_t)file.tellg();
 	if(!size) return;
@@ -73,24 +61,22 @@ void IniFile::LoadData()
 
 void IniFile::SaveData()
 {
-	if(sections.empty() || sections[0].entries.empty()) return;
-	bool b = std::filesystem::exists(save_fname);
-	ofstream file(b ? save_fname.c_str() : fname.c_str(), ios::trunc);
-	if(!file.is_open())
+	auto sectionComparator = [](const section& a, const section& b)
 	{
-		file.open(save_fname.c_str(), ios::trunc);
-		if(!file.is_open()) return;
-	}
-	if(sort_sections) sort(sections.begin(), sections.end(), [](section a, section b) {
 		return lexicographical_compare(a.name().begin(), a.name().end(), b.name().begin(), b.name().end());
-	});
+	};
+
+	if(sections.empty() || sections[0].entries.empty())
+		return;
+	ofstream file(fname, ios::trunc);
+	if(!file.is_open())
+		return;
+	if(sort_sections) sort(sections.begin(), sections.end(), sectionComparator);
 
 	for(auto &section : sections)
 	{
 		file << '[' << section.name() << "]\n";
-		if(sort_entries) sort(section.entries.begin(), section.entries.end(), [](section::entry a, section::entry b) {
-			return lexicographical_compare(a.name().begin(), a.name().end(), b.name().begin(), b.name().end());
-		});
+		if(sort_entries) sort(sections.begin(), sections.end(), sectionComparator);
 
 		for(auto &entry : section.entries)
 			file << entry.name() << (nospaces ? "=" : " = ") << entry.data() << '\n';

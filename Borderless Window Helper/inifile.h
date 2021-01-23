@@ -6,7 +6,6 @@
 class IniFile
 {
 	std::filesystem::path fname;
-	static std::filesystem::path save_fname;
 	bool sort_sections = false, sort_entries = false, nospaces = false;
 
 	void LoadData();
@@ -33,7 +32,7 @@ class IniFile
 	public:
 		friend class IniFile;
 		section(const std::string &name) : _name(name) {};
-		const std::string& name() { return _name; }
+		const std::string& name() const { return _name; }
 		void add_entry(const std::string&, const std::string&);
 	};
 	

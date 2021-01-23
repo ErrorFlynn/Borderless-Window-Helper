@@ -14,8 +14,9 @@
 using namespace std;
 using namespace nana;
 
-std::filesystem::path inifile;
-std::filesystem::path self_path;
+namespace fs = std::filesystem;
+
+fs::path inifile;
 HWND hwnd;
 
 struct processNameComp {
@@ -39,8 +40,9 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 	LPWSTR *argv = CommandLineToArgvW(GetCommandLineW(), &argc);
 	LocalFree(argv);
 
-	self_path = AppPath();
-	inifile = self_path.parent_path() / L"bwh.ini";
+	inifile = AppPath().parent_path() / L"bwh.ini";
+	if (!fs::exists(inifile))
+		inifile = GetSysFolderLocation(CSIDL_APPDATA) / L"Borderless-Window-Helper\\bwh.ini";
 
 	CreateMutexW(NULL, FALSE, TITLEW);
 	if(GetLastError() == ERROR_ALREADY_EXISTS)
@@ -62,13 +64,13 @@ void RunGUI(bool show)
 	form fm(API::make_center(645, 800), appear::decorate<appear::minimize, appear::sizable>());
 	fm.bgcolor(colors::white);
 	fm.caption(TITLE);
-	fm.icon(paint::image(self_path));
+	fm.icon(paint::image(AppPath()));
 
 	hwnd = (HWND)fm.native_handle();
 
 	notifier ntfr(fm);
 	ntfr.text(TITLE);
-	ntfr.icon(self_path.string());
+	ntfr.icon(AppPath().string());
 	ntfr.events().dbl_click([&fm] { if(fm.visible()) fm.hide(); else { fm.show(); SetForegroundWindow(hwnd); } });
 	ntfr.events().mouse_up([&fm](const arg_mouse &e)
 	{
@@ -97,7 +99,7 @@ void RunGUI(bool show)
 					std::filesystem::remove(stlink);
 				else
 				{
-					createShortcut(stlink, self_path, L"tray", L"This shortcut has been created by Borderless Window Helper, because you "
+					createShortcut(stlink, AppPath(), L"tray", L"This shortcut has been created by Borderless Window Helper, because you "
 			"selected \"Start with Windows\" from the program's tray menu.");
 				}
 			}
@@ -149,7 +151,8 @@ void RunGUI(bool show)
 	lb1.fgcolor(color_rgb(0x555555));
 	lb1.caption("Processes with windows being monitored:");
 
-	auto itemComparator = [](const std::string& s1, nana::any*, const std::string& s2, nana::any*, bool reverse) {
+	auto itemComparator = [](const std::string& s1, nana::any*,
+							 const std::string& s2, nana::any*, bool reverse) {
 		int res = _stricmp(s1.c_str(), s2.c_str());
 		return reverse ? res > 0 : res < 0;
 	};
@@ -478,7 +481,7 @@ void enum_windows()
 			{
 				auto procpath = GetModuleFileNameExPath(hproc);
 				CloseHandle(hproc);
-				if(procpath != self_path)
+				if(procpath != AppPath())
 				{
 					enumwin win;
 					win.procid = procid;
