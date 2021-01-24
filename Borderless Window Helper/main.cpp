@@ -59,6 +59,14 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 	return 0;
 }
 
+enum MENUIDS
+{
+	IDSHOW = 2000,
+	IDAUTOSTART,
+	IDSTARTMENU,
+	IDEXIT
+};
+
 void RunGUI(bool show)
 {
 	form fm(API::make_center(645, 800), appear::decorate<appear::minimize, appear::sizable>());
@@ -71,39 +79,56 @@ void RunGUI(bool show)
 	notifier ntfr(fm);
 	ntfr.text(TITLE);
 	ntfr.icon(AppPath().string());
-	ntfr.events().dbl_click([&fm] { if(fm.visible()) fm.hide(); else { fm.show(); SetForegroundWindow(hwnd); } });
+	ntfr.events().dbl_click([&fm] {
+		if(fm.visible())
+			fm.hide();
+		else
+		{
+			fm.show();
+			SetForegroundWindow(hwnd);
+		}
+	});
 	ntfr.events().mouse_up([&fm](const arg_mouse &e)
 	{
 		if(e.right_button)
 		{
-			static std::filesystem::path stlink = GetSysFolderLocation(CSIDL_APPDATA) /
+			static fs::path stlink = GetSysFolderLocation(CSIDL_APPDATA) /
 			L"microsoft\\windows\\start menu\\programs\\startup\\Borderless Window Helper.lnk";
+			static fs::path menu_link = GetSysFolderLocation(CSIDL_APPDATA) /
+			L"microsoft\\windows\\start menu\\programs\\Borderless Window Helper.lnk";
 			HMENU hpop = CreatePopupMenu();
 			POINT pt;
 			GetCursorPos(&pt);
-			int pos = 0, ID = 2000;
-			InsertMenuW(hpop, pos++, MF_BYPOSITION | MF_STRING, ID, fm.visible() ? L"Hide interface" : L"Show interface");
-			InsertMenuW(hpop, pos++, MF_BYPOSITION | MF_STRING | (std::filesystem::exists(stlink) ? MF_CHECKED : 0), ID+1, L"Start with Windows");
-			InsertMenuW(hpop, pos++, MF_BYPOSITION | MF_STRING, ID+2, L"Exit");
+			int pos = 0;
+			InsertMenuW(hpop, pos++, MF_BYPOSITION | MF_STRING, IDSHOW, fm.visible() ? L"Hide interface" : L"Show interface");
+			InsertMenuW(hpop, pos++, MF_BYPOSITION | MF_STRING | (fs::exists(stlink) ? MF_CHECKED : MF_UNCHECKED), IDAUTOSTART, L"Start with Windows");
+			InsertMenuW(hpop, pos++, MF_BYPOSITION | MF_STRING | (fs::exists(menu_link) ? MF_CHECKED : MF_UNCHECKED), IDSTARTMENU, L"Start Menu");
+			InsertMenuW(hpop, pos++, MF_BYPOSITION | MF_STRING, IDEXIT, L"Exit");
 			SetForegroundWindow(hwnd);
 			WORD cmd = TrackPopupMenu(hpop, TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD | TPM_NONOTIFY, pt.x, pt.y, 0, hwnd, NULL);
 			DestroyMenu(hpop);
-			if(cmd == ID)
+			if(cmd == IDSHOW)
 			{
-				if(fm.visible()) fm.hide();
-				else fm.show();
-			}
-			else if(cmd == ID+1)
-			{
-				if(std::filesystem::exists(stlink))
-					std::filesystem::remove(stlink);
+				if(fm.visible())
+					fm.hide();
 				else
-				{
-					createShortcut(stlink, AppPath(), L"tray", L"This shortcut has been created by Borderless Window Helper, because you "
-			"selected \"Start with Windows\" from the program's tray menu.");
-				}
+					fm.show();
 			}
-			else if(cmd == ID+2)
+			else if(cmd == IDAUTOSTART)
+			{
+				if(fs::exists(stlink))
+					fs::remove(stlink);
+				else
+					createShortcut(stlink, AppPath(), L"tray", L"");
+			}
+			else if(cmd == IDSTARTMENU)
+			{
+				if(fs::exists(menu_link))
+					fs::remove(menu_link);
+				else
+					createShortcut(menu_link, AppPath(), L"tray", L"");
+			}
+			else if(cmd == IDEXIT)
 				API::exit();
 		}
 	});
@@ -519,9 +544,9 @@ void LoadSettings()
 			style = ini.ReadInt(to_string(n++), "s", 0);
 			if(pname.find('\\') != string::npos)
 			{
-				std::filesystem::path p(pname);
+				fs::path p(pname);
 				string key = p.filename().string();
-				if(std::filesystem::exists(p))
+				if(fs::exists(p))
 				{
 					monwins[key] = {style, false, p.filename().string(), p};
 				}
@@ -536,13 +561,13 @@ void LoadSettings()
 
 void SaveSettings()
 {
-	std::filesystem::remove(inifile);
+	fs::remove(inifile);
 	IniFile ini(inifile);
 	int idx = 0;
 	for(auto& [procname, monwin] : monwins)
 	{
 		string s = to_string(idx++);
-		const std::filesystem::path& modpath = monwin.modpath;
+		const fs::path& modpath = monwin.modpath;
 		ini.WriteString(s, "p", modpath.empty() ? monwin.pname : modpath.string());
 		ini.WriteInt(s, "s", monwin.style);
 	}

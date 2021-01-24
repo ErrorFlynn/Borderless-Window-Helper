@@ -1,8 +1,10 @@
 #include "util.h"
 #include <psapi.h>
 #include <shlobj.h>
+#include <wrl.h>
 
 using namespace std;
+using namespace Microsoft;
 
 std::filesystem::path AppPath()
 {
@@ -37,21 +39,17 @@ std::filesystem::path GetModuleFileNameExPath(HANDLE hProcess)
 HRESULT createShortcut(const std::filesystem::path& linkFileName, const std::filesystem::path& targetPath, const std::wstring& arguments,
 const std::wstring& description) {
 	HRESULT hres;
-	IShellLinkW *psl;
-	hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLinkW, (LPVOID*)&psl);
+	WRL::ComPtr<IShellLinkW> psl;
+	hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLinkW, &psl);
 	if(SUCCEEDED(hres))
 	{
-		IPersistFile *ppf;
+		WRL::ComPtr<IPersistFile> ppf;
 		psl->SetPath(targetPath.c_str());
 		psl->SetArguments(arguments.c_str());
 		psl->SetDescription(description.c_str());
-		hres = psl->QueryInterface(IID_IPersistFile, (LPVOID*)&ppf);
+		hres = psl.As(&ppf);
 		if(SUCCEEDED(hres))
-		{
 			hres = ppf->Save(linkFileName.c_str(), TRUE);
-			ppf->Release();
-		}
-		psl->Release();
 	}
 	return hres;
 }
