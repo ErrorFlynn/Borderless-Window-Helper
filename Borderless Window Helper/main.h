@@ -2,8 +2,9 @@
 #include <string>
 #include <windows.h>
 
-#pragma warning( disable : 4800 4267 4996)
-#pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' \
+#pragma warning(disable : 4800 4267 4996)
+#pragma comment(linker,                                                                                                \
+                "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' \
 	processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
 #define TITLE "Borderless Window Helper 1.3"
@@ -11,28 +12,28 @@
 
 struct monwin
 {
-	int style = 0;
-	bool active = false;
-	std::string pname; // process name as displayed in the list (not lowercased)
-	std::filesystem::path modpath; // module path necessary for getting icon from module
+    int style = 0;
+    bool active = false;
+    std::string pname;             // process name as displayed in the list (not lowercased)
+    std::filesystem::path modpath; // module path necessary for getting icon from module
 };
 
 struct enumwin
 {
-	DWORD procid = 0;
-	std::string pname; // process name as displayed in the list (not lowercased)
-	HWND hwnd = nullptr;
-	HMONITOR monitor = nullptr;
-	std::wstring captionw;
-	bool borderless = false;
-	std::filesystem::path modpath;
+    DWORD procid = 0;
+    std::string pname; // process name as displayed in the list (not lowercased)
+    HWND hwnd = nullptr;
+    HMONITOR monitor = nullptr;
+    std::wstring captionw;
+    bool borderless = false;
+    std::filesystem::path modpath;
 };
 
 namespace nana
 {
 class listbox;
 class label;
-}
+} // namespace nana
 
 void LoadSettings();
 void SaveSettings();
@@ -41,4 +42,4 @@ void enum_windows();
 void enum_timer_fn(nana::listbox &list1, nana::listbox &list2, nana::label &info);
 void mon_timer_fn();
 
-std::ostream& operator<<(std::ostream& os, const std::wstring& s);
+std::ostream &operator<<(std::ostream &os, const std::wstring &s);
