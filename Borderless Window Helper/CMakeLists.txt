@@ -9,9 +9,17 @@ add_executable(${PROJECT_NAME} WIN32
 )
 
 option(NANA_CMAKE_ENABLE_CONF "enable config.hpp" ON)
-add_subdirectory(nana)
+# add_subdirectory(nana)
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE -DUNICODE -D_UNICODE)
+
+include(cmake/CPM.cmake)
+
+CPMAddPackage(
+  NAME nana
+  GITHUB_REPOSITORY cnjinhao/nana
+  GIT_TAG fit_content
+)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE nana::nana)
 
