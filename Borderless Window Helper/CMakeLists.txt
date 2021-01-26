@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
-project(Borderless-Window-Helper VERSION 1.3 LANGUAGES CXX)
+project(Borderless-Window-Helper VERSION 2.0.0 LANGUAGES CXX)
 
-add_executable(${PROJECT_NAME} WIN32
+add_executable(${PROJECT_NAME}
+  WIN32
   Borderless-Window-Helper.rc
   inifile.cpp
   main.cpp
