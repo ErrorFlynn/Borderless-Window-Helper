@@ -396,11 +396,9 @@ void RunGUI(bool show)
     list1.auto_draw(true);
     list1.column_at(0).fit_content();
 
+    plc.collocate();
     if (show)
-    {
-        plc.collocate();
         fm.show();
-    }
     nana::exec();
     ntfr.close();
 }
