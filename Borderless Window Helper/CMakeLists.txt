@@ -42,3 +42,9 @@ target_link_options(${PROJECT_NAME} PRIVATE
 )
 
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
+
+include(cmake/cv2pdb.cmake)
+set(suffix ".exe")
+if(CV2PDB)
+  add_cv2pdb_target(pdb ${PROJECT_NAME})
+endif()
