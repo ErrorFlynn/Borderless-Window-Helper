@@ -241,17 +241,19 @@ void RunGUI(bool show)
                 if (monwin.pname == seltext)
                     return;
             const auto &win = windows.at(seltext);
-            int style = 0;
-            if (!win.borderless)
-                style = GetWindowLongPtr(win.hwnd, GWL_STYLE);
-            monwins[seltext] = {style, false, seltext, win.modpath};
+            LONG_PTR style = 0, exstyle = 0;
+            if (!win.borderless) {
+                style = GetWindowLongPtrW(win.hwnd, GWL_STYLE);
+                exstyle = GetWindowLongPtrW(win.hwnd, GWL_EXSTYLE);
+            }
+            monwins[seltext] = {style, exstyle, false, seltext, win.modpath};
             list1.auto_draw(false);
             list1.at(0).push_back(seltext);
             list1.at(0).back().icon(paint::image(win.modpath));
             list1.auto_draw(true);
             list1.column_at(0).fit_content();
             mon_timer_fn();
-            PostMessage(win.hwnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
+            PostMessageW(win.hwnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
             SetForegroundWindow(hwnd);
         }
     });
@@ -347,7 +349,9 @@ void RunGUI(bool show)
                     const enumwin &win = it->second;
                     const auto &monwin = monwins.at(seltext);
                     if (monwin.style != 0)
-                        SetWindowLongPtr(win.hwnd, GWL_STYLE, monwin.style);
+                        SetWindowLongPtrW(win.hwnd, GWL_STYLE, monwin.style);
+                    if (monwin.exstyle != 0)
+                        SetWindowLongPtrW(win.hwnd, GWL_EXSTYLE, monwin.exstyle);
                 }
                 monwins.erase(seltext);
             }
@@ -368,7 +372,9 @@ void RunGUI(bool show)
                 const enumwin &win = it->second;
                 const auto &monwin = monwins.at(seltext);
                 if (monwin.style != 0)
-                    SetWindowLongPtr(win.hwnd, GWL_STYLE, monwin.style);
+                    SetWindowLongPtrW(win.hwnd, GWL_STYLE, monwin.style);
+                if (monwin.exstyle != 0)
+                    SetWindowLongPtrW(win.hwnd, GWL_EXSTYLE, monwin.exstyle);
             }
             monwins.erase(seltext);
             list1.erase(selection);
@@ -416,7 +422,9 @@ void mon_timer_fn()
         {
             MONITORINFO mi = {sizeof(mi)};
             GetMonitorInfoW(win.monitor, &mi);
-            SetWindowLongPtr(win.hwnd, GWL_STYLE, (monwin.style & ~(WS_CAPTION | WS_THICKFRAME)) | WS_POPUP);
+            // TODO: store style and exstyle in win?
+            SetWindowLongPtrW(win.hwnd, GWL_STYLE, (monwin.style & ~(WS_CAPTION | WS_THICKFRAME)) | WS_POPUP);
+            SetWindowLongPtrW(win.hwnd, GWL_EXSTYLE, monwin.exstyle & ~(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE));
             SetWindowPos(win.hwnd, HWND_TOP, mi.rcMonitor.left, mi.rcMonitor.top,
                          mi.rcMonitor.right - mi.rcMonitor.left, mi.rcMonitor.bottom - mi.rcMonitor.top,
                          SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
@@ -431,7 +439,7 @@ void mon_timer_fn()
                 if (fgclassname != L"TaskSwitcherWnd" && fgclassname != L"Ghost")
                 {
                     monwin.active = false;
-                    PostMessage(win.hwnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
+                    PostMessageW(win.hwnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
                 }
             }
         }
@@ -514,7 +522,7 @@ void enum_timer_fn(listbox &list1, listbox &list2, label &info)
 void enum_windows()
 {
     WNDENUMPROC enumfn = [](HWND hwnd, LPARAM lparam) -> BOOL {
-        auto style = GetWindowLongPtr(hwnd, GWL_STYLE);
+        auto style = GetWindowLongPtrW(hwnd, GWL_STYLE);
         wstring caption = GetWindowTextString(hwnd);
         if ((style & WS_VISIBLE) && !caption.empty() && caption != L"Program Manager")
         {
@@ -552,27 +560,30 @@ void LoadSettings()
 {
     IniFile ini(inifile);
     monwins.clear();
-    int n = 0, style = 0;
+    int n = 0;
+    LONG_PTR style = 0, exstyle = 0;
     string pname;
     do
     {
         pname = ini.ReadString(to_string(n), "p", "");
         if (!pname.empty())
         {
-            style = ini.ReadInt(to_string(n++), "s", 0);
+            style = ini.ReadInt(to_string(n), "s", 0);
+            exstyle = ini.ReadInt(to_string(n), "exstyle", 0);
             if (pname.find('\\') != string::npos)
             {
                 fs::path p(pname);
                 string key = p.filename().string();
                 if (fs::exists(p))
-                    monwins[key] = {style, false, p.filename().string(), p};
+                    monwins[key] = {style, exstyle, false, p.filename().string(), p};
                 else
-                    monwins[key] = {style, false, p.filename().string()};
+                    monwins[key] = {style, exstyle, false, p.filename().string()};
             }
             else
-                monwins[pname] = {style, false, pname};
+                monwins[pname] = {style, exstyle, false, pname};
         }
-    } while (pname.size());
+        n++;
+    } while (!pname.empty());
 }
 
 void SaveSettings()
@@ -586,6 +597,7 @@ void SaveSettings()
         const fs::path &modpath = monwin.modpath;
         ini.WriteString(s, "p", modpath.empty() ? monwin.pname : modpath.string());
         ini.WriteInt(s, "s", monwin.style);
+        ini.WriteInt(s, "exstyle", monwin.exstyle);
     }
 }
 

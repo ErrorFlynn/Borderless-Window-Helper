@@ -12,7 +12,8 @@
 
 struct monwin
 {
-    int style = 0;
+    LONG_PTR style = 0;
+    LONG_PTR exstyle = 0;
     bool active = false;
     std::string pname;             // process name as displayed in the list (not lowercased)
     std::filesystem::path modpath; // module path necessary for getting icon from module
