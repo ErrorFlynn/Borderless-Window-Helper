@@ -22,6 +22,8 @@ namespace fs = std::filesystem;
 fs::path inifile;
 HWND hwnd;
 
+void display_info(listbox &list1, listbox &list2, label &info);
+
 struct processNameComp
 {
     bool operator()(const std::string &s1, const std::string &s2) const
@@ -242,7 +244,8 @@ void RunGUI(bool show)
                     return;
             const auto &win = windows.at(seltext);
             LONG_PTR style = 0, exstyle = 0;
-            if (!win.borderless) {
+            if (!win.borderless)
+            {
                 style = GetWindowLongPtrW(win.hwnd, GWL_STYLE);
                 exstyle = GetWindowLongPtrW(win.hwnd, GWL_EXSTYLE);
             }
@@ -259,6 +262,7 @@ void RunGUI(bool show)
     });
 
     list2.events().selected([&list1, &list2, &lbinfo](const arg_listbox &arg) {
+        display_info(list1, list2, lbinfo);
         if (IsWindowVisible(hwnd) && !IsIconic(hwnd))
         {
             auto lb = list2.at(0);
@@ -298,6 +302,7 @@ void RunGUI(bool show)
     });
 
     list1.events().selected([&list1, &list2, &lbinfo](const arg_listbox &arg) {
+        display_info(list1, list2, lbinfo);
         if (IsWindowVisible(hwnd) && !IsIconic(hwnd))
         {
             auto lb = list1.at(0);
@@ -384,12 +389,12 @@ void RunGUI(bool show)
 
     timer enum_timer;
     enum_timer.interval(1000ms);
-    enum_timer.elapse([&list1, &list2, &lbinfo] { enum_timer_fn(list1, list2, lbinfo); });
+    enum_timer.elapse([&list1, &list2, &lbinfo] { enum_timer_fn(list1, list2); });
     enum_timer.start();
-    enum_timer_fn(list1, list2, lbinfo);
+    enum_timer_fn(list1, list2);
 
     timer mon_timer;
-    mon_timer.interval(250ms);
+    mon_timer.interval(1000ms);
     mon_timer.elapse(mon_timer_fn);
     mon_timer.start();
 
@@ -401,6 +406,7 @@ void RunGUI(bool show)
     }
     list1.auto_draw(true);
     list1.column_at(0).fit_content();
+    display_info(list1, list2, lbinfo);
 
     plc.collocate();
     if (show)
@@ -448,13 +454,10 @@ void mon_timer_fn()
     }
 }
 
-// updates list2 from current data
-void enum_timer_fn(listbox &list1, listbox &list2, label &info)
+void display_info(listbox &list1, listbox &list2, label &info)
 {
-    enum_windows();
-    auto lb1 = list1.at(0), lb2 = list2.at(0);
     auto selection1 = list1.selected(), selection2 = list2.selected();
-    if (selection2.empty() && selection1.empty() && IsWindowVisible(hwnd) && !IsIconic(hwnd))
+    if (selection2.empty() && selection1.empty())
     {
         info.text_align(align::center, align_v::center);
         info.typeface(paint::font("Segoe UI", 10, detail::font_style(0, true)));
@@ -465,6 +468,13 @@ void enum_timer_fn(listbox &list1, listbox &list2, label &info)
                      "remove "
                      "them.");
     }
+}
+
+// updates list2 from current data
+void enum_timer_fn(listbox &list1, listbox &list2)
+{
+    enum_windows();
+    auto lb1 = list1.at(0), lb2 = list2.at(0);
     list2.auto_draw(false);
     for (auto &item : lb2) // remove from list2 processes no longer running
     {

@@ -33,14 +33,13 @@ struct enumwin
 namespace nana
 {
 class listbox;
-class label;
 } // namespace nana
 
 void LoadSettings();
 void SaveSettings();
 void RunGUI(bool show);
 void enum_windows();
-void enum_timer_fn(nana::listbox &list1, nana::listbox &list2, nana::label &info);
+void enum_timer_fn(nana::listbox &list1, nana::listbox &list2);
 void mon_timer_fn();
 
 std::ostream &operator<<(std::ostream &os, const std::wstring &s);
