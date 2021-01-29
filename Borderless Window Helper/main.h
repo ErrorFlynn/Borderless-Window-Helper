@@ -7,8 +7,8 @@
                 "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' \
 	processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
-#define TITLE "Borderless Window Helper 1.3"
-#define TITLEW L"Borderless Window Helper 1.3"
+#define TITLE "Borderless Window Helper"
+#define TITLEW L"Borderless Window Helper"
 
 struct monwin
 {
