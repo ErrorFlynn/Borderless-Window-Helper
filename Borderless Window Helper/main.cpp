@@ -263,80 +263,74 @@ void RunGUI(bool show)
 
     list2.events().selected([&list1, &list2, &lbinfo](const arg_listbox &arg) {
         display_info(list1, list2, lbinfo);
-        if (IsWindowVisible(hwnd) && !IsIconic(hwnd))
+        auto lb = list2.at(0);
+        auto selection = list2.selected();
+        if (selection.size() == 1)
         {
-            auto lb = list2.at(0);
-            auto selection = list2.selected();
-            if (selection.size() == 1)
+            string seltext = lb.at(selection[0].item).text(0);
+            lbinfo.text_align(align::left);
+            lbinfo.typeface(paint::font("Segoe UI", 10, detail::font_style(0)));
+            auto it = windows.find(seltext);
+            if (it != windows.end())
             {
-                string seltext = lb.at(selection[0].item).text(0);
-                lbinfo.text_align(align::left);
-                lbinfo.typeface(paint::font("Segoe UI", 10, detail::font_style(0)));
-                auto it = windows.find(seltext);
-                if (it != windows.end())
+                const auto &win = it->second;
+                std::stringstream caption;
+                caption << R"(<font=" Segoe UI Semibold ">PID:</> )" << win.procid
+                        << "  |  <font=\"Segoe UI Semibold\">Window handle:</> " << std::hex << win.hwnd
+                        << "  |  Window ";
+                if (win.borderless)
                 {
-                    const auto &win = it->second;
-                    std::stringstream caption;
-                    caption << R"(<font=" Segoe UI Semibold ">PID:</> )" << win.procid
-                            << "  |  <font=\"Segoe UI Semibold\">Window handle:</> " << std::hex << win.hwnd
-                            << "  |  Window ";
-                    if (win.borderless)
-                    {
-                        auto it = monwins.find(seltext);
-                        if (it != monwins.end() && it->second.style != 0)
-                            caption << "border has been removed";
-                        else
-                            caption << "doesn't have a border";
-                    }
+                    auto it = monwins.find(seltext);
+                    if (it != monwins.end() && it->second.style != 0)
+                        caption << "border has been removed";
                     else
-                        caption << "has a border (monitoring will remove it)";
-                    caption << "\n\n<font=\"Segoe UI Semibold\">Window title:</> " << escape(win.captionw);
-                    lbinfo.caption(caption.str());
+                        caption << "doesn't have a border";
                 }
                 else
-                {
-                    lbinfo.caption("Unexpected error - can't find window!");
-                }
+                    caption << "has a border (monitoring will remove it)";
+                caption << "\n\n<font=\"Segoe UI Semibold\">Window title:</> " << escape(win.captionw);
+                lbinfo.caption(caption.str());
+            }
+            else
+            {
+                lbinfo.caption("Unexpected error - can't find window!");
             }
         }
     });
 
     list1.events().selected([&list1, &list2, &lbinfo](const arg_listbox &arg) {
         display_info(list1, list2, lbinfo);
-        if (IsWindowVisible(hwnd) && !IsIconic(hwnd))
+        auto lb = list1.at(0);
+        auto selection = list1.selected();
+        if (selection.size() == 1)
         {
-            auto lb = list1.at(0);
-            auto selection = list1.selected();
-            if (selection.size() == 1)
+            string seltext = lb.at(selection[0].item).text(0);
+            lbinfo.text_align(align::center, align_v::center);
+            lbinfo.typeface(paint::font("Segoe UI", 10, detail::font_style(0, true)));
+            std::stringstream caption;
+            const auto &monwin = monwins.at(seltext);
+            if (windows.find(seltext) == windows.end())
+                caption << "The process is not currently running."
+                        << (monwin.style != 0 ? " Its window has a border, which will "
+                                                "be removed when it is run."
+                                              : "");
+            if (caption.str().empty())
             {
-                string seltext = lb.at(selection[0].item).text(0);
-                lbinfo.text_align(align::center, align_v::center);
-                lbinfo.typeface(paint::font("Segoe UI", 10, detail::font_style(0, true)));
-                std::stringstream caption;
-                const auto &monwin = monwins.at(seltext);
-                if (windows.find(seltext) == windows.end())
-                    caption << "The process is not currently running."
-                            << (monwin.style != 0 ? " Its window has a border, which will "
-                                                    "be removed when it is run."
-                                                  : "");
-                if (caption.str().empty())
-                {
-                    caption << "The process is currently running. Its window is being "
-                               "monitored and "
-                               "will be minimized while not in focus.";
-                    if (monwin.style != 0)
-                        caption << " The border has been removed, and the window "
-                                   "has been resized to fill the screen.";
-                }
-                string modpath = monwin.modpath.string();
-                if (!modpath.empty())
-                {
-                    if (monwin.style != 0)
-                        caption << "\n";
-                    caption << "\n<color=0x117011>" << modpath << "</>";
-                }
-                lbinfo.caption(caption.str());
+                caption << "The process is currently running. Its window is being "
+                           "monitored and "
+                           "will be minimized while not in focus.";
+                if (monwin.style != 0)
+                    caption << " The border has been removed, and the window "
+                               "has been resized to fill the screen.";
             }
+            string modpath = monwin.modpath.string();
+            if (!modpath.empty())
+            {
+                if (monwin.style != 0)
+                    caption << "\n";
+                caption << "\n<color=0x117011>" << modpath << "</>";
+            }
+            lbinfo.caption(caption.str());
         }
     });
 
