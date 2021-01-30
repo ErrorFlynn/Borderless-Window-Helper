@@ -556,8 +556,8 @@ void LoadSettings()
         pname = ini.ReadString(to_string(n), "p", "");
         if (!pname.empty())
         {
-            style = ini.ReadInt(to_string(n), "s", 0);
-            exstyle = ini.ReadInt(to_string(n), "exstyle", 0);
+            style = ini.ReadLongLong(to_string(n), "s", 0);
+            exstyle = ini.ReadLongLong(to_string(n), "exstyle", 0);
             if (pname.find('\\') != string::npos)
             {
                 fs::path p(pname);
@@ -574,6 +574,14 @@ void LoadSettings()
     } while (!pname.empty());
 }
 
+template<typename t>
+std::string to_hex_string(t i)
+{
+    std::stringstream ss;
+    ss << std::hex << "0x" << i;
+    return ss.str();
+}
+
 void SaveSettings()
 {
     fs::remove(inifile);
@@ -584,8 +592,8 @@ void SaveSettings()
         string s = to_string(idx++);
         const fs::path &modpath = monwin.modpath;
         ini.WriteString(s, "p", modpath.empty() ? monwin.pname : modpath.string());
-        ini.WriteInt(s, "s", monwin.style);
-        ini.WriteInt(s, "exstyle", monwin.exstyle);
+        ini.WriteString(s, "s", to_hex_string(monwin.style));
+        ini.WriteString(s, "exstyle", to_hex_string(monwin.exstyle));
     }
 }
 

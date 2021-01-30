@@ -86,6 +86,7 @@ class IniFile
 
     int ReadInt(const std::string &section_name, const std::string &entry_name, int default_value);
     unsigned ReadUInt(const std::string &section_name, const std::string &entry_name, unsigned default_value);
+    long long ReadLongLong(const std::string &section_name, const std::string &entry_name, long long default_value);
     std::string ReadString(const std::string &section_name, const std::string &entry_name,
                            const std::string &default_value);
     void WriteInt(const std::string &section_name, const std::string &entry_name, int value);
