@@ -334,37 +334,12 @@ void RunGUI(bool show)
         }
     });
 
-    list1.events().key_release([&list1](const arg_keyboard &arg) {
-        if (arg.key == 0x7f) // DEL ASCII code
-        {
-            auto lb = list1.at(0);
-            auto selection = list1.selected();
-            for (auto &selitem : selection)
-            {
-                string seltext = lb.at(selitem.item).text(0);
-                auto it = windows.find(seltext);
-                if (it != windows.end())
-                {
-                    const enumwin &win = it->second;
-                    const auto &monwin = monwins.at(seltext);
-                    if (monwin.style != 0)
-                        ::SetWindowLongPtrW(win.hwnd, GWL_STYLE, monwin.style);
-                    if (monwin.exstyle != 0)
-                        ::SetWindowLongPtrW(win.hwnd, GWL_EXSTYLE, monwin.exstyle);
-                }
-                monwins.erase(seltext);
-            }
-            list1.erase(selection);
-            list1.column_at(0).fit_content();
-        }
-    });
-
-    list1.events().dbl_click([&list1](const arg_mouse &arg) {
+    auto remove_monitored_processes = [&list1]() {
         auto lb = list1.at(0);
         auto selection = list1.selected();
-        if (!selection.empty())
+        for (auto &selitem : selection)
         {
-            string seltext = lb.at(selection[0].item).text(0);
+            string seltext = lb.at(selitem.item).text(0);
             auto it = windows.find(seltext);
             if (it != windows.end())
             {
@@ -376,9 +351,18 @@ void RunGUI(bool show)
                     ::SetWindowLongPtrW(win.hwnd, GWL_EXSTYLE, monwin.exstyle);
             }
             monwins.erase(seltext);
-            list1.erase(selection);
-            list1.column_at(0).fit_content();
         }
+        list1.erase(selection);
+        list1.column_at(0).fit_content();
+    };
+
+    list1.events().key_release([&remove_monitored_processes](const arg_keyboard &arg) {
+        if (arg.key == 0x7f) // DEL ASCII code
+            remove_monitored_processes();
+    });
+
+    list1.events().dbl_click([&remove_monitored_processes](const arg_mouse &arg) {
+        remove_monitored_processes();
     });
 
     timer enum_timer;
