@@ -43,7 +43,7 @@ HRESULT createShortcut(const std::filesystem::path &linkFileName, const std::fil
 {
     HRESULT hres;
     WRL::ComPtr<IShellLinkW> psl;
-    hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLinkW, &psl);
+    hres = ::CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLinkW, &psl);
     if (SUCCEEDED(hres))
     {
         WRL::ComPtr<IPersistFile> ppf;
@@ -60,11 +60,11 @@ HRESULT createShortcut(const std::filesystem::path &linkFileName, const std::fil
 std::filesystem::path GetSysFolderLocation(int csidl)
 {
     LPITEMIDLIST pidl;
-    if (SUCCEEDED(SHGetFolderLocation(NULL, csidl, NULL, 0, &pidl)))
+    if (SUCCEEDED(::SHGetFolderLocation(NULL, csidl, NULL, 0, &pidl)))
     {
         WCHAR path[MAX_PATH];
-        BOOL ret = SHGetPathFromIDListW(pidl, path);
-        ILFree(pidl);
+        BOOL ret = ::SHGetPathFromIDListW(pidl, path);
+        ::ILFree(pidl);
         if (ret)
             return path;
     }
@@ -75,7 +75,7 @@ std::wstring GetClassNameString(HWND hWnd)
 {
     std::wstring className;
     className.resize(256);
-    int nRet = GetClassNameW(hWnd, &className[0], className.size());
+    int nRet = ::GetClassNameW(hWnd, &className[0], className.size());
     if (nRet == 0)
         return L"";
     className.resize(nRet);
@@ -84,12 +84,12 @@ std::wstring GetClassNameString(HWND hWnd)
 
 std::wstring GetWindowTextString(HWND hWnd)
 {
-    int len = GetWindowTextLengthW(hWnd);
+    int len = ::GetWindowTextLengthW(hWnd);
     if (len == 0)
         return L"";
     wstring caption;
     caption.resize(len + 1);
-    int nRet = GetWindowTextW(hWnd, &caption[0], caption.size());
+    int nRet = ::GetWindowTextW(hWnd, &caption[0], caption.size());
     if (nRet == 0)
         return L"";
     caption.resize(nRet);

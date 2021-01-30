@@ -28,7 +28,7 @@ struct processNameComp
 {
     bool operator()(const std::string &s1, const std::string &s2) const
     {
-        return _stricmp(s1.c_str(), s2.c_str()) < 0;
+        return ::_stricmp(s1.c_str(), s2.c_str()) < 0;
     }
 };
 
@@ -44,26 +44,26 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 #endif
 
     int argc;
-    LPWSTR *argv = CommandLineToArgvW(GetCommandLineW(), &argc);
-    LocalFree(argv);
+    LPWSTR *argv = ::CommandLineToArgvW(GetCommandLineW(), &argc);
+    ::LocalFree(argv);
 
     inifile = AppPath().parent_path() / L"bwh.ini";
     if (!fs::exists(inifile))
         inifile = GetSysFolderLocation(CSIDL_APPDATA) / L"Borderless-Window-Helper\\bwh.ini";
 
-    CreateMutexW(NULL, FALSE, TITLEW);
-    if (GetLastError() == ERROR_ALREADY_EXISTS)
+    ::CreateMutexW(NULL, FALSE, TITLEW);
+    if (::GetLastError() == ERROR_ALREADY_EXISTS)
     {
-        MessageBoxW(NULL, L"An instance of the program is already running! Press OK to exit.", TITLEW,
-                    MB_ICONEXCLAMATION);
+        ::MessageBoxW(NULL, L"An instance of the program is already running! Press OK to exit.", TITLEW,
+                      MB_ICONEXCLAMATION);
         return 0;
     }
 
-    CoInitialize(NULL);
+    ::CoInitialize(NULL);
     LoadSettings();
     RunGUI(argc == 1);
     SaveSettings();
-    CoUninitialize();
+    ::CoUninitialize();
     return 0;
 }
 
@@ -93,7 +93,7 @@ void RunGUI(bool show)
         else
         {
             fm.show();
-            SetForegroundWindow(hwnd);
+            ::SetForegroundWindow(hwnd);
         }
     });
     ntfr.events().mouse_up([&fm](const arg_mouse &e) {
@@ -104,21 +104,21 @@ void RunGUI(bool show)
                                      L"menu\\programs\\startup\\Borderless Window Helper.lnk";
             static fs::path menu_link = GetSysFolderLocation(CSIDL_APPDATA) /
                                         L"microsoft\\windows\\start menu\\programs\\Borderless Window Helper.lnk";
-            HMENU hpop = CreatePopupMenu();
+            HMENU hpop = ::CreatePopupMenu();
             POINT pt;
-            GetCursorPos(&pt);
+            ::GetCursorPos(&pt);
             int pos = 0;
-            InsertMenuW(hpop, pos++, MF_BYPOSITION | MF_STRING, IDSHOW,
-                        fm.visible() ? L"Hide interface" : L"Show interface");
-            InsertMenuW(hpop, pos++, MF_BYPOSITION | MF_STRING | (fs::exists(stlink) ? MF_CHECKED : MF_UNCHECKED),
-                        IDAUTOSTART, L"Start with Windows");
-            InsertMenuW(hpop, pos++, MF_BYPOSITION | MF_STRING | (fs::exists(menu_link) ? MF_CHECKED : MF_UNCHECKED),
-                        IDSTARTMENU, L"Start Menu");
-            InsertMenuW(hpop, pos++, MF_BYPOSITION | MF_STRING, IDEXIT, L"Exit");
-            SetForegroundWindow(hwnd);
-            WORD cmd = TrackPopupMenu(hpop, TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD | TPM_NONOTIFY, pt.x, pt.y,
-                                      0, hwnd, NULL);
-            DestroyMenu(hpop);
+            ::InsertMenuW(hpop, pos++, MF_BYPOSITION | MF_STRING, IDSHOW,
+                          fm.visible() ? L"Hide interface" : L"Show interface");
+            ::InsertMenuW(hpop, pos++, MF_BYPOSITION | MF_STRING | (fs::exists(stlink) ? MF_CHECKED : MF_UNCHECKED),
+                          IDAUTOSTART, L"Start with Windows");
+            ::InsertMenuW(hpop, pos++, MF_BYPOSITION | MF_STRING | (fs::exists(menu_link) ? MF_CHECKED : MF_UNCHECKED),
+                          IDSTARTMENU, L"Start Menu");
+            ::InsertMenuW(hpop, pos++, MF_BYPOSITION | MF_STRING, IDEXIT, L"Exit");
+            ::SetForegroundWindow(hwnd);
+            WORD cmd = ::TrackPopupMenu(hpop, TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD | TPM_NONOTIFY, pt.x,
+                                        pt.y, 0, hwnd, NULL);
+            ::DestroyMenu(hpop);
             if (cmd == IDSHOW)
             {
                 if (fm.visible())
@@ -189,7 +189,7 @@ void RunGUI(bool show)
     lb1.caption("Processes with windows being monitored:");
 
     auto itemComparator = [](const std::string &s1, nana::any *, const std::string &s2, nana::any *, bool reverse) {
-        int res = _stricmp(s1.c_str(), s2.c_str());
+        int res = ::_stricmp(s1.c_str(), s2.c_str());
         return reverse ? res > 0 : res < 0;
     };
 
@@ -246,8 +246,8 @@ void RunGUI(bool show)
             LONG_PTR style = 0, exstyle = 0;
             if (!win.borderless)
             {
-                style = GetWindowLongPtrW(win.hwnd, GWL_STYLE);
-                exstyle = GetWindowLongPtrW(win.hwnd, GWL_EXSTYLE);
+                style = ::GetWindowLongPtrW(win.hwnd, GWL_STYLE);
+                exstyle = ::GetWindowLongPtrW(win.hwnd, GWL_EXSTYLE);
             }
             monwins[seltext] = {style, exstyle, false, seltext, win.modpath};
             list1.auto_draw(false);
@@ -256,8 +256,8 @@ void RunGUI(bool show)
             list1.auto_draw(true);
             list1.column_at(0).fit_content();
             mon_timer_fn();
-            PostMessageW(win.hwnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
-            SetForegroundWindow(hwnd);
+            ::PostMessageW(win.hwnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
+            ::SetForegroundWindow(hwnd);
         }
     });
 
@@ -348,9 +348,9 @@ void RunGUI(bool show)
                     const enumwin &win = it->second;
                     const auto &monwin = monwins.at(seltext);
                     if (monwin.style != 0)
-                        SetWindowLongPtrW(win.hwnd, GWL_STYLE, monwin.style);
+                        ::SetWindowLongPtrW(win.hwnd, GWL_STYLE, monwin.style);
                     if (monwin.exstyle != 0)
-                        SetWindowLongPtrW(win.hwnd, GWL_EXSTYLE, monwin.exstyle);
+                        ::SetWindowLongPtrW(win.hwnd, GWL_EXSTYLE, monwin.exstyle);
                 }
                 monwins.erase(seltext);
             }
@@ -371,9 +371,9 @@ void RunGUI(bool show)
                 const enumwin &win = it->second;
                 const auto &monwin = monwins.at(seltext);
                 if (monwin.style != 0)
-                    SetWindowLongPtrW(win.hwnd, GWL_STYLE, monwin.style);
+                    ::SetWindowLongPtrW(win.hwnd, GWL_STYLE, monwin.style);
                 if (monwin.exstyle != 0)
-                    SetWindowLongPtrW(win.hwnd, GWL_EXSTYLE, monwin.exstyle);
+                    ::SetWindowLongPtrW(win.hwnd, GWL_EXSTYLE, monwin.exstyle);
             }
             monwins.erase(seltext);
             list1.erase(selection);
@@ -421,25 +421,25 @@ void mon_timer_fn()
         if (!win.borderless) // remove borders
         {
             MONITORINFO mi = {sizeof(mi)};
-            GetMonitorInfoW(win.monitor, &mi);
+            ::GetMonitorInfoW(win.monitor, &mi);
             // TODO: store style and exstyle in win?
-            SetWindowLongPtrW(win.hwnd, GWL_STYLE, (monwin.style & ~(WS_CAPTION | WS_THICKFRAME)) | WS_POPUP);
-            SetWindowLongPtrW(win.hwnd, GWL_EXSTYLE, monwin.exstyle & ~(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE));
-            SetWindowPos(win.hwnd, HWND_TOP, mi.rcMonitor.left, mi.rcMonitor.top,
-                         mi.rcMonitor.right - mi.rcMonitor.left, mi.rcMonitor.bottom - mi.rcMonitor.top,
-                         SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+            ::SetWindowLongPtrW(win.hwnd, GWL_STYLE, (monwin.style & ~(WS_CAPTION | WS_THICKFRAME)) | WS_POPUP);
+            ::SetWindowLongPtrW(win.hwnd, GWL_EXSTYLE, monwin.exstyle & ~(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE));
+            ::SetWindowPos(win.hwnd, HWND_TOP, mi.rcMonitor.left, mi.rcMonitor.top,
+                           mi.rcMonitor.right - mi.rcMonitor.left, mi.rcMonitor.bottom - mi.rcMonitor.top,
+                           SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
             win.borderless = true;
         }
-        HWND fghwnd = GetForegroundWindow();
+        HWND fghwnd = ::GetForegroundWindow();
         if (monwin.active)
         {
-            if (fghwnd != win.hwnd && win.monitor == MonitorFromWindow(fghwnd, MONITOR_DEFAULTTOPRIMARY))
+            if (fghwnd != win.hwnd && win.monitor == ::MonitorFromWindow(fghwnd, MONITOR_DEFAULTTOPRIMARY))
             {
                 wstring fgclassname = GetClassNameString(fghwnd);
                 if (fgclassname != L"TaskSwitcherWnd" && fgclassname != L"Ghost")
                 {
                     monwin.active = false;
-                    PostMessageW(win.hwnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
+                    ::PostMessageW(win.hwnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
                 }
             }
         }
@@ -503,7 +503,7 @@ void enum_timer_fn(listbox &list1, listbox &list2)
     }
     list2.auto_draw(true);
     list2.column_at(0).fit_content();
-    if (IsWindowVisible(hwnd) && !IsIconic(hwnd))
+    if (::IsWindowVisible(hwnd) && !::IsIconic(hwnd))
     {
         list1.auto_draw(false);
         for (auto &item : list1.at(0))
@@ -526,24 +526,24 @@ void enum_timer_fn(listbox &list1, listbox &list2)
 void enum_windows()
 {
     WNDENUMPROC enumfn = [](HWND hwnd, LPARAM lparam) -> BOOL {
-        auto style = GetWindowLongPtrW(hwnd, GWL_STYLE);
-        wstring caption = GetWindowTextString(hwnd);
+        auto style = ::GetWindowLongPtrW(hwnd, GWL_STYLE);
+        wstring caption = ::GetWindowTextString(hwnd);
         if ((style & WS_VISIBLE) && !caption.empty() && caption != L"Program Manager")
         {
             DWORD procid = 0;
-            GetWindowThreadProcessId(hwnd, &procid);
-            HANDLE hproc = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, 0, procid);
+            ::GetWindowThreadProcessId(hwnd, &procid);
+            HANDLE hproc = ::OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, 0, procid);
             if (hproc != NULL)
             {
                 auto procpath = GetModuleFileNameExPath(hproc);
-                CloseHandle(hproc);
+                ::CloseHandle(hproc);
                 if (procpath != AppPath())
                 {
                     enumwin win;
                     win.procid = procid;
                     win.pname = procpath.filename().string();
                     win.hwnd = hwnd;
-                    win.monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY);
+                    win.monitor = ::MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY);
                     win.captionw = caption;
                     if (!(style & (WS_CAPTION | WS_THICKFRAME)))
                         win.borderless = true;
@@ -557,7 +557,7 @@ void enum_windows()
     };
 
     windows.clear();
-    EnumWindows(enumfn, 0);
+    ::EnumWindows(enumfn, 0);
 }
 
 void LoadSettings()
