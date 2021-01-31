@@ -239,9 +239,8 @@ void RunGUI(bool show)
         {
             string seltext;
             seltext = lb.at(selection[0].item).text(0);
-            for (const auto &[procname, monwin] : monwins)
-                if (monwin.pname == seltext)
-                    return;
+            if (monwins.find(seltext) != monwins.end())
+                return;
             const auto &win = windows.at(seltext);
             LONG_PTR style = 0, exstyle = 0;
             if (!win.borderless)
@@ -361,9 +360,7 @@ void RunGUI(bool show)
             remove_monitored_processes();
     });
 
-    list1.events().dbl_click([&remove_monitored_processes](const arg_mouse &arg) {
-        remove_monitored_processes();
-    });
+    list1.events().dbl_click([&remove_monitored_processes](const arg_mouse &arg) { remove_monitored_processes(); });
 
     timer enum_timer;
     enum_timer.interval(1000ms);
@@ -462,18 +459,11 @@ void enum_timer_fn(listbox &list1, listbox &list2)
     // add to list2 running processes that are not already in the list
     for (auto &[procname, win] : windows)
     {
-        bool found = false;
-        for (auto &item : lb2)
-        {
-            if (item.text(0) == win.pname)
-            {
-                found = true;
-                break;
-            }
-        }
+        auto found = std::find_if(lb2.begin(), lb2.end(),
+                                  [&](auto &item) { return item.text(0) == procname; }) != lb2.end();
         if (!found)
         {
-            lb2.push_back(win.pname);
+            lb2.push_back(procname);
             lb2.back().icon(paint::image(win.modpath));
         }
     }
@@ -574,8 +564,7 @@ void LoadSettings()
     } while (!pname.empty());
 }
 
-template<typename t>
-std::string to_hex_string(t i)
+template <typename t> std::string to_hex_string(t i)
 {
     std::stringstream ss;
     ss << std::hex << "0x" << i;
