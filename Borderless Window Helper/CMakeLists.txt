@@ -19,12 +19,11 @@ add_executable(${PROJECT_NAME}
   util.cpp
 )
 
-option(NANA_CMAKE_ENABLE_CONF "enable config.hpp" ON)
-# add_subdirectory(nana)
-
 target_compile_definitions(${PROJECT_NAME} PRIVATE -DUNICODE -D_UNICODE)
 
 include(cmake/CPM.cmake)
+
+option(NANA_CMAKE_ENABLE_CONF "enable config.hpp" ON)
 
 CPMAddPackage(
   NAME nana
@@ -48,3 +47,11 @@ set(suffix ".exe")
 if(CV2PDB)
   add_cv2pdb_target(pdb ${PROJECT_NAME})
 endif()
+
+install(
+  DIRECTORY "${PROJECT_BINARY_DIR}/pdb/"
+  DESTINATION .
+)
+
+set(CPACK_GENERATOR ZIP)
+include(CPack)
