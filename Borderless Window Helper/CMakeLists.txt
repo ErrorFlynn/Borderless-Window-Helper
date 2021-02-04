@@ -28,7 +28,7 @@ include(cmake/CPM.cmake)
 
 CPMAddPackage(
   NAME nana
-  GITHUB_REPOSITORY cnjinhao/nana
+  GITHUB_REPOSITORY oltolm/nana
   GIT_TAG fit_content
 )
 
