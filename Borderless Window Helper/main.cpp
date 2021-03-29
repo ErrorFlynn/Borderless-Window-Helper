@@ -188,7 +188,7 @@ void RunGUI(bool show)
     lb1.fgcolor(color_rgb(0x555555));
     lb1.caption("Processes with windows being monitored:");
 
-    auto itemComparator = [](const std::string &s1, nana::any *, const std::string &s2, nana::any *, bool reverse) {
+    auto itemComparator = [](const std::string &s1, std::any *, const std::string &s2, std::any *, bool reverse) {
         int res = ::_stricmp(s1.c_str(), s2.c_str());
         return reverse ? res > 0 : res < 0;
     };
