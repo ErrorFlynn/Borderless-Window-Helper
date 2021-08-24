@@ -316,8 +316,7 @@ void RunGUI(bool show)
             if (caption.str().empty())
             {
                 caption << "The process is currently running. Its window is being "
-                           "monitored and "
-                           "will be minimized while not in focus.";
+                           "monitored.";
                 if (monwin.style != 0)
                     caption << " The border has been removed, and the window "
                                "has been resized to fill the screen.";
@@ -420,7 +419,7 @@ void mon_timer_fn()
                 if (fgclassname != L"TaskSwitcherWnd" && fgclassname != L"Ghost")
                 {
                     monwin.active = false;
-                    ::PostMessageW(win.hwnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
+                    // ::PostMessageW(win.hwnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
                 }
             }
         }
@@ -459,8 +458,8 @@ void enum_timer_fn(listbox &list1, listbox &list2)
     // add to list2 running processes that are not already in the list
     for (auto &[procname, win] : windows)
     {
-        auto found = std::find_if(lb2.begin(), lb2.end(),
-                                  [&](auto &item) { return item.text(0) == procname; }) != lb2.end();
+        auto found =
+            std::find_if(lb2.begin(), lb2.end(), [&](auto &item) { return item.text(0) == procname; }) != lb2.end();
         if (!found)
         {
             lb2.push_back(procname);

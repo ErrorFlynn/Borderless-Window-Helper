@@ -61,19 +61,5 @@ endif()
 
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
 
-if(NOT MSVC)
-  include(cmake/cv2pdb.cmake)
-  if(CV2PDB)
-    file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/pdb")
-    add_cv2pdb_target(${PROJECT_NAME} ${PROJECT_NAME}.exe ${PROJECT_NAME}.pdb)
-    add_custom_target(pdb DEPENDS "${PROJECT_NAME}_pdb")
-
-    install(
-      DIRECTORY "${PROJECT_BINARY_DIR}/pdb/"
-      DESTINATION .
-    )
-  endif()
-endif()
-
 set(CPACK_GENERATOR ZIP)
 include(CPack)
