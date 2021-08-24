@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
-project(Borderless-Window-Helper VERSION 2.0.0 LANGUAGES CXX)
+project(Borderless-Window-Helper VERSION 2.1.0 LANGUAGES CXX)
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX
@@ -44,7 +44,8 @@ CPMAddPackage(
 target_link_libraries(${PROJECT_NAME} PRIVATE nana::nana)
 
 if(NOT MSVC)
-  target_link_options(${PROJECT_NAME} PRIVATE
+  target_link_options(${PROJECT_NAME}
+    PRIVATE
     -municode
     -static
     -static-libgcc
@@ -53,9 +54,9 @@ if(NOT MSVC)
 endif()
 
 if(MSVC)
-  target_compile_options(${PROJECT_NAME} PRIVATE
+  target_compile_options(${PROJECT_NAME}
+    PRIVATE
     /MT # build static exe
-    /MP # build in parallel
   )
 endif()
 
@@ -63,3 +64,4 @@ target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
 
 set(CPACK_GENERATOR ZIP)
 include(CPack)
+install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION .)
