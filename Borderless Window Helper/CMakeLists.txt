@@ -38,7 +38,7 @@ option(NANA_CMAKE_ENABLE_CONF "enable config.hpp" ON)
 CPMAddPackage(
   NAME nana
   GITHUB_REPOSITORY cnjinhao/nana
-  GIT_TAG 95a609e75d3ad558acfa1f664eb684d963392246
+  GIT_TAG feb57c3b3a287d8ae56f3bf6f4fba2815f5d5189
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE nana::nana)
