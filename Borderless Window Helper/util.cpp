@@ -1,6 +1,7 @@
 #include "util.h"
 #include <psapi.h>
 #include <shlobj.h>
+#include <sstream>
 #include <wrl.h>
 
 using namespace std;
