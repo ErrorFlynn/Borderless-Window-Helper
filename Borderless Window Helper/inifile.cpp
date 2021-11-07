@@ -16,25 +16,16 @@ void IniFile::LoadData()
     if (!fs::exists(fname))
         return;
 
-    ifstream file(fname, ios::ate);
+    ifstream file(fname);
     if (!file.is_open())
         return;
-    size_t size = (size_t)file.tellg();
-    if (!size)
-        return;
-    stringstream data;
-    string data_temp(size, '\0');
-    file.seekg(0);
-    file.read(&data_temp.front(), size);
-    data << data_temp;
-    data_temp.clear();
 
     string line, section_name, entry_name, entry_data;
     size_t section_index;
 
-    while (!data.eof())
+    while (!file.eof())
     {
-        getline(data, line);
+        getline(file, line);
         if (line.size() < 3 || line[0] != '[')
             continue;
         section_name = line.substr(1, line.find(']', 1) - 1);
@@ -53,9 +44,9 @@ void IniFile::LoadData()
             sections.emplace_back(section_name);
         }
 
-        while (!data.eof() && data.peek() != '[')
+        while (!file.eof() && file.peek() != '[')
         {
-            getline(data, line);
+            getline(file, line);
             size_t pos = line.find('=');
             if (pos == string::npos)
                 continue;

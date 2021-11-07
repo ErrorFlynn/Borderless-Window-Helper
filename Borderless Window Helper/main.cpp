@@ -100,8 +100,7 @@ void RunGUI(bool show)
         if (e.right_button)
         {
             static fs::path stlink = GetSysFolderLocation(CSIDL_APPDATA) /
-                                     L"microsoft\\windows\\start "
-                                     L"menu\\programs\\startup\\Borderless Window Helper.lnk";
+                                     L"microsoft\\windows\\start menu\\programs\\startup\\Borderless Window Helper.lnk";
             static fs::path menu_link = GetSysFolderLocation(CSIDL_APPDATA) /
                                         L"microsoft\\windows\\start menu\\programs\\Borderless Window Helper.lnk";
             HMENU hpop = ::CreatePopupMenu();
@@ -177,10 +176,9 @@ void RunGUI(bool show)
 
     auto plc = place(fm);
     plc.div(R"(<form margin=15 vertical arrange=86
-                << monitored vertical arrange = [ 15, variable ] margin =
-                [ 0, 7, 0, 0 ] >
-                <running vertical arrange = [ 15, variable ] margin = [ 0, 0, 0, 8 ]> >
-                <weight = 15> >)");
+                <<monitored vertical arrange = [ 15, variable ] margin = [ 0, 7, 0, 0 ]>
+                 <running   vertical arrange = [ 15, variable ] margin = [ 0, 0, 0, 8 ]>>
+                <weight = 15>>)");
 
     const int padding = 15;
 
@@ -255,7 +253,7 @@ void RunGUI(bool show)
             list1.auto_draw(true);
             list1.column_at(0).fit_content();
             mon_timer_fn();
-            ::PostMessageW(win.hwnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
+            // ::PostMessageW(win.hwnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
             ::SetForegroundWindow(hwnd);
         }
     });
