@@ -78,7 +78,7 @@ enum MENUIDS
 
 void RunGUI(bool show)
 {
-    form fm(API::make_center(645, 800), appear::decorate<appear::minimize, appear::sizable>());
+    form fm(API::make_center(640, 480), appear::decorate<appear::minimize, appear::sizable>());
     fm.bgcolor(colors::white);
     fm.caption(TITLE);
     fm.icon(paint::image(AppPath()));
