@@ -145,7 +145,7 @@ long long IniFile::ReadLongLong(const string &section_name, const string &entry_
         if (section.name() == section_name)
             for (auto &entry : section.entries)
                 if (entry.name() == entry_name)
-                    return stoll(entry.data(), nullptr, entry.data().compare(0, 2, "0x") == 0 ? 16 : 10);
+                    return stoll(entry.data(), nullptr, 0);
 
     return default_value;
 }
@@ -156,7 +156,7 @@ int IniFile::ReadInt(const string &section_name, const string &entry_name, int d
         if (section.name() == section_name)
             for (auto &entry : section.entries)
                 if (entry.name() == entry_name)
-                    return stoi(entry.data(), nullptr, entry.data().compare(0, 2, "0x") == 0 ? 16 : 10);
+                    return stoi(entry.data(), nullptr, 0);
 
     return default_value;
 }
@@ -167,7 +167,7 @@ unsigned IniFile::ReadUInt(const string &section_name, const string &entry_name,
         if (section.name() == section_name)
             for (auto &entry : section.entries)
                 if (entry.name() == entry_name)
-                    return stoul(entry.data(), nullptr, entry.data().compare(0, 2, "0x") == 0 ? 16 : 10);
+                    return stoul(entry.data(), nullptr, 0);
 
     return default_value;
 }
