@@ -13,6 +13,7 @@
 
 #include "inifile.h"
 #include "nana_subclassing.h"
+#include "tinyformat.h"
 
 using namespace std;
 using namespace nana;
@@ -176,9 +177,9 @@ void RunGUI(bool show)
 
     auto plc = place(fm);
     plc.div(R"(<form margin=15 vertical arrange=86
-                <<monitored vertical arrange = [ 15, variable ] margin = [ 0, 7, 0, 0 ]>
-                 <running   vertical arrange = [ 15, variable ] margin = [ 0, 0, 0, 8 ]>>
-                <weight = 15>>)");
+                 <<monitored vertical arrange = [ 15, variable ] margin = [ 0, 7, 0, 0 ]>
+                   <running  vertical arrange = [ 15, variable ] margin = [ 0, 0, 0, 8 ]>>
+                 <weight = 15>>)");
 
     const int padding = 15;
 
@@ -271,22 +272,22 @@ void RunGUI(bool show)
             if (it != windows.end())
             {
                 const auto &win = it->second;
-                std::stringstream caption;
-                caption << R"(<font=" Segoe UI Semibold ">PID:</> )" << win.procid
-                        << "  |  <font=\"Segoe UI Semibold\">Window handle:</> " << std::hex << win.hwnd
-                        << "  |  Window ";
+                const char *border;
                 if (win.borderless)
                 {
                     auto it = monwins.find(seltext);
                     if (it != monwins.end() && it->second.style != 0)
-                        caption << "border has been removed";
+                        border = "border has been removed";
                     else
-                        caption << "doesn't have a border";
+                        border = "doesn't have a border";
                 }
                 else
-                    caption << "has a border (monitoring will remove it)";
-                caption << "\n\n<font=\"Segoe UI Semibold\">Window title:</> " << escape(win.captionw);
-                lbinfo.caption(caption.str());
+                    border = "has a border (monitoring will remove it)";
+                const char *cap =
+                    R"(<font="Segoe UI Semibold">PID:</> %d | <font="Segoe UI Semibold">Window handle:</> %x | Window %s
+
+<font="Segoe UI Semibold">Window title:</> %s)";
+                lbinfo.caption(tfm::format(cap, win.procid, win.hwnd, border, escape(win.captionw)));
             }
             else
             {
@@ -307,17 +308,16 @@ void RunGUI(bool show)
             std::stringstream caption;
             const auto &monwin = monwins.at(seltext);
             if (windows.find(seltext) == windows.end())
-                caption << "The process is not currently running."
-                        << (monwin.style != 0 ? " Its window has a border, which will "
-                                                "be removed when it is run."
-                                              : "");
+            {
+                caption << "The process is not currently running.";
+                if (monwin.style != 0)
+                    caption << " Its window has a border, which will be removed when it is run.";
+            }
             if (caption.str().empty())
             {
-                caption << "The process is currently running. Its window is being "
-                           "monitored.";
+                caption << "The process is currently running. Its window is being monitored.";
                 if (monwin.style != 0)
-                    caption << " The border has been removed, and the window "
-                               "has been resized to fill the screen.";
+                    caption << " The border has been removed, and the window has been resized to fill the screen.";
             }
             string modpath = monwin.modpath.string();
             if (!modpath.empty())
@@ -433,12 +433,9 @@ void display_info(listbox &list1, listbox &list2, label &info)
     {
         info.text_align(align::center, align_v::center);
         info.typeface(paint::font("Segoe UI", 10, detail::font_style(0, true)));
-        info.caption("<color=0x666666>Select a process in the lists above to see some info about it "
-                     "here.\n"
-                     "Double-click a process in the right list to start monitoring its window.\n"
-                     "Select one or more processes in the left list and press the \"Delete\" key to "
-                     "remove "
-                     "them.");
+        info.caption(R"(<color=0x666666>Select a process in the lists above to see some info about it here.
+Double-click a process in the right list to start monitoring its window.
+Select one or more processes in the left list and press the "Delete" key to remove them.)");
     }
 }
 
