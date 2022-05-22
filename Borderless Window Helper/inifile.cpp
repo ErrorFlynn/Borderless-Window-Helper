@@ -1,4 +1,5 @@
 #include "inifile.h"
+#include <algorithm>
 #include <fstream>
 #include <sstream>
 
@@ -71,13 +72,13 @@ void IniFile::SaveData()
     if (!file.is_open())
         return;
     if (sort_sections)
-        sort(sections.begin(), sections.end(), sectionComparator);
+        std::sort(sections.begin(), sections.end(), sectionComparator);
 
     for (auto &section : sections)
     {
         file << '[' << section.name() << "]\n";
         if (sort_entries)
-            sort(sections.begin(), sections.end(), sectionComparator);
+            std::sort(sections.begin(), sections.end(), sectionComparator);
 
         for (auto &entry : section.entries)
             file << entry.name() << (nospaces ? "=" : " = ") << entry.data() << '\n';
