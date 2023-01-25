@@ -451,8 +451,10 @@ void enum_timer_fn(listbox &list1, listbox &list2)
             list2.erase(item);
     }
     // add to list2 running processes that are not already in the list
-    for (auto &[procname, win] : windows)
+    for (const auto& entry : windows)
     {
+        auto procname = entry.first;
+        const auto& win = entry.second;
         auto found =
             std::find_if(lb2.begin(), lb2.end(), [&](auto &item) { return item.text(0) == procname; }) != lb2.end();
         if (!found)
