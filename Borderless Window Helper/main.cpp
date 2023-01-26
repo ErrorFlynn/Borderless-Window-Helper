@@ -256,6 +256,7 @@ void RunGUI(bool show)
             mon_timer_fn();
             // ::PostMessageW(win.hwnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
             ::SetForegroundWindow(hwnd);
+            SaveSettings();
         }
     });
 
@@ -350,6 +351,7 @@ void RunGUI(bool show)
         }
         list1.erase(selection);
         list1.column_at(0).fit_content();
+        SaveSettings();
     };
 
     list1.events().key_release([&remove_monitored_processes](const arg_keyboard &arg) {

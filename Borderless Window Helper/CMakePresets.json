@@ -6,11 +6,7 @@
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/build-clang",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo"
-            },
-            "environment": {
-                "CXXFLAGS": "-fsanitize=address -fno-omit-frame-pointer",
-                "LDFLAGS": "-fsanitize=address"
+                "CMAKE_BUILD_TYPE": "Release"
             }
         }
     ]
