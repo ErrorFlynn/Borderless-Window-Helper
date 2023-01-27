@@ -2,6 +2,14 @@
     "version": 2,
     "configurePresets": [
         {
+            "name": "gcc",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
             "name": "clang",
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/build-clang",
